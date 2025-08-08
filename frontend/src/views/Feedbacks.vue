@@ -1,5 +1,6 @@
 <template>
-  <div class="feedbacks-page">
+  <AppLayout>
+    <div class="feedbacks-page">
     <div class="page-header">
       <h2>Quản lý phản ánh</h2>
     </div>
@@ -59,12 +60,14 @@
           />
         </div>
       </el-card>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import AppLayout from '@/components/Layout/AppLayout.vue'
 import api from '@/services/api'
 import type { Feedback } from '@/types'
 

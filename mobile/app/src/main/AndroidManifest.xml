@@ -38,7 +38,7 @@
         <activity
             android:name=".ui.splash.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.HungThinhApartment.Splash">
+            android:theme="@style/Theme.HungThinhApartment">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

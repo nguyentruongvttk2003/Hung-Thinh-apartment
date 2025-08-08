@@ -1,83 +1,36 @@
 <template>
+  <AppLayout>
   <div class="events-page">
     <div class="page-header">
       <h1>Quản lý Sự kiện</h1>
-      <el-button type="primary" @click="showCreateDialog = true">
-        <el-icon><Plus /></el-icon>
-        Tạo sự kiện mới
-      </el-button>
-    </div>
-
-    <el-card>
-      <div class="table-toolbar">
-        <div class="filters">
-          <el-input
-            v-model="searchQuery"
-            placeholder="Tìm kiếm sự kiện..."
-            style="width: 300px"
-            clearable
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
-          <el-select v-model="typeFilter" placeholder="Loại sự kiện" clearable>
-            <el-option label="Họp cư dân" value="meeting" />
-            <el-option label="Sự kiện văn hóa" value="cultural" />
-            <el-option label="Bảo trì" value="maintenance" />
-            <el-option label="Khác" value="other" />
-          </el-select>
-          <el-select v-model="statusFilter" placeholder="Trạng thái" clearable>
-            <el-option label="Sắp diễn ra" value="upcoming" />
-            <el-option label="Đang diễn ra" value="ongoing" />
-            <el-option label="Đã kết thúc" value="completed" />
-            <el-option label="Đã hủy" value="cancelled" />
-          </el-select>
-        </div>
       </div>
 
-      <el-table :data="filteredEvents" v-loading="loading" stripe>
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="title" label="Tiêu đề" />
-        <el-table-column prop="type" label="Loại sự kiện">
-          <template #default="{ row }">
-            <el-tag :type="getEventTypeTag(row.type)">
-              {{ getEventTypeLabel(row.type) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="start_date" label="Ngày bắt đầu" />
-        <el-table-column prop="end_date" label="Ngày kết thúc" />
-        <el-table-column prop="location" label="Địa điểm" />
-        <el-table-column prop="status" label="Trạng thái">
-          <template #default="{ row }">
-            <el-tag :type="getStatusTag(row.status)">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="participants_count" label="Số người tham gia" width="120" />
-        <el-table-column label="Thao tác" width="200">
-          <template #default="{ row }">
-            <el-button size="small" @click="viewEvent(row)">Xem</el-button>
-            <el-button size="small" type="primary" @click="editEvent(row)">Sửa</el-button>
-            <el-button size="small" type="danger" @click="deleteEvent(row)">Xóa</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <DataTable
+        title="Danh sách sự kiện"
+        :data="events"
+        :columns="columns"
+        :loading="loading"
+        :total="total"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :filters="filters"
+        :actions="actions"
+        :search-keys="['title', 'location', 'description']"
+        searchPlaceholder="Tìm kiếm theo tiêu đề, địa điểm..."
+        exportable
+        @refresh="loadEvents"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      >
+        <template #toolbar-actions>
+          <el-button type="primary" @click="showCreateDialog = true">
+            <el-icon><Plus /></el-icon>
+            Tạo sự kiện mới
+          </el-button>
+        </template>
 
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
-    </el-card>
+
+      </DataTable>
 
     <!-- Create/Edit Dialog -->
     <el-dialog
@@ -140,20 +93,21 @@
       </template>
     </el-dialog>
   </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, View } from '@element-plus/icons-vue'
+import AppLayout from '@/components/Layout/AppLayout.vue'
+import DataTable from '@/components/DataTable.vue'
+import api from '@/services/api'
 import type { Event } from '@/types'
 
 // Reactive data
 const loading = ref(false)
 const events = ref<Event[]>([])
-const searchQuery = ref('')
-const typeFilter = ref('')
-const statusFilter = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
@@ -182,104 +136,68 @@ const eventRules = {
   max_participants: [{ required: true, message: 'Vui lòng nhập số người tối đa', trigger: 'blur' }]
 }
 
-// Computed
-const filteredEvents = computed(() => {
-  let filtered = events.value
-
-  if (searchQuery.value) {
-    filtered = filtered.filter(event =>
-      event.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
+// Table configuration  
+const columns = [
+  { prop: 'id', label: 'ID', width: 80 },
+  { prop: 'title', label: 'Tiêu đề', minWidth: 200 },
+  { 
+    prop: 'type', 
+    label: 'Loại', 
+    width: 130,
+    formatter: (row: Event) => getEventTypeLabel(row.type)
+  },
+  { 
+    prop: 'start_date', 
+    label: 'Bắt đầu', 
+    width: 160,
+    formatter: (row: Event) => formatDateTime(row.start_date) 
+  },
+  { 
+    prop: 'end_date', 
+    label: 'Kết thúc', 
+    width: 160,
+    formatter: (row: Event) => formatDateTime(row.end_date) 
+  },
+  { prop: 'location', label: 'Địa điểm', minWidth: 150 },
+  { 
+    prop: 'status', 
+    label: 'Trạng thái', 
+    width: 120,
+    formatter: (row: Event) => getStatusLabel(row.status)
+  },
+  { 
+    prop: 'current_participants', 
+    label: 'Người tham gia', 
+    width: 150,
+    formatter: (row: Event) => `${row.current_participants}/${row.max_participants || 0}`
   }
+]
 
-  if (typeFilter.value) {
-    filtered = filtered.filter(event => event.type === typeFilter.value)
-  }
-
-  if (statusFilter.value) {
-    filtered = filtered.filter(event => event.status === statusFilter.value)
-  }
-
-  return filtered
-})
-
-// Methods
-const getEventTypeLabel = (type: string) => {
-  const types: Record<string, string> = {
-    meeting: 'Họp cư dân',
-    cultural: 'Sự kiện văn hóa',
-    maintenance: 'Bảo trì',
-    other: 'Khác'
-  }
-  return types[type] || type
-}
-
-const getEventTypeTag = (type: string) => {
-  const tags: Record<string, string> = {
-    meeting: 'primary',
-    cultural: 'success',
-    maintenance: 'warning',
-    other: 'info'
-  }
-  return tags[type] || ''
-}
-
-const getStatusLabel = (status: string) => {
-  const statuses: Record<string, string> = {
-    upcoming: 'Sắp diễn ra',
-    ongoing: 'Đang diễn ra',
-    completed: 'Đã kết thúc',
-    cancelled: 'Đã hủy'
-  }
-  return statuses[status] || status
-}
-
-const getStatusTag = (status: string) => {
-  const tags: Record<string, string> = {
-    upcoming: 'warning',
-    ongoing: 'primary',
-    completed: 'success',
-    cancelled: 'info'
-  }
-  return tags[status] || ''
-}
-
-const fetchEvents = async () => {
-  loading.value = true
-  try {
-    // TODO: Implement API call
-    // const response = await api.getEvents({ page: currentPage.value, per_page: pageSize.value })
-    // events.value = response.data.data
-    // total.value = response.data.total
-    
-    // Mock data for now
-    events.value = [
-      {
-        id: 1,
-        title: 'Họp cư dân tháng 1',
-        type: 'meeting',
-        start_date: '2024-01-25 19:00:00',
-        end_date: '2024-01-25 21:00:00',
-        location: 'Hội trường tầng 1',
-        status: 'upcoming',
-        description: 'Họp cư dân định kỳ tháng 1',
-        max_participants: 100,
-        participants_count: 45,
-        created_at: '2024-01-15',
-        updated_at: '2024-01-15'
-      }
+const filters = [
+  {
+    key: 'type',
+    placeholder: 'Loại sự kiện',
+    options: [
+      { label: 'Họp cư dân', value: 'meeting' },
+      { label: 'Sự kiện văn hóa', value: 'cultural' },
+      { label: 'Bảo trì', value: 'maintenance' },
+      { label: 'Khác', value: 'other' }
     ]
-    total.value = events.value.length
-  } catch (error) {
-    ElMessage.error('Lỗi khi tải danh sách sự kiện')
-  } finally {
-    loading.value = false
+  },
+  {
+    key: 'status',
+    placeholder: 'Trạng thái',
+    options: [
+      { label: 'Sắp diễn ra', value: 'upcoming' },
+      { label: 'Đang diễn ra', value: 'ongoing' },
+      { label: 'Đã kết thúc', value: 'completed' },
+      { label: 'Đã hủy', value: 'cancelled' }
+    ]
   }
-}
+]
 
+// Forward declarations for actions
 const viewEvent = (event: Event) => {
-  // TODO: Implement view event details
   ElMessage.info(`Xem chi tiết sự kiện: ${event.title}`)
 }
 
@@ -291,7 +209,7 @@ const editEvent = (event: Event) => {
     start_date: event.start_date,
     end_date: event.end_date,
     location: event.location,
-    max_participants: event.max_participants,
+    max_participants: event.max_participants ?? 50,
     description: event.description || ''
   }
   showCreateDialog.value = true
@@ -309,11 +227,10 @@ const deleteEvent = async (event: Event) => {
       }
     )
     
-    // TODO: Implement API call
+    // TODO: Implement when API is ready
     // await api.deleteEvent(event.id)
-    
-    ElMessage.success('Xóa sự kiện thành công')
-    fetchEvents()
+    ElMessage.success('Xóa sự kiện thành công (demo)')
+    loadEvents()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('Lỗi khi xóa sự kiện')
@@ -321,24 +238,133 @@ const deleteEvent = async (event: Event) => {
   }
 }
 
+const actions = [
+  {
+    key: 'view',
+    label: 'Xem',
+    type: 'default',
+    icon: View,
+    handler: viewEvent
+  },
+  {
+    key: 'edit',
+    label: 'Sửa',
+    type: 'primary',
+    icon: Edit,
+    handler: editEvent
+  },
+  {
+    key: 'delete',
+    label: 'Xóa',
+    type: 'danger',
+    icon: Delete,
+    handler: deleteEvent
+  }
+]
+
+// Methods
+const getEventTypeLabel = (type: string) => {
+  const types: Record<string, string> = {
+    meeting: 'Họp cư dân',
+    cultural: 'Sự kiện văn hóa',
+    maintenance: 'Bảo trì',
+    other: 'Khác'
+  }
+  return types[type] || type
+}
+
+const getEventTypeTag = (type: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    meeting: 'primary',
+    cultural: 'success',
+    maintenance: 'warning',
+    other: 'info'
+  }
+  return tags[type] || 'info'
+}
+
+const getStatusLabel = (status: string) => {
+  const statuses: Record<string, string> = {
+    upcoming: 'Sắp diễn ra',
+    ongoing: 'Đang diễn ra',
+    completed: 'Đã kết thúc',
+    cancelled: 'Đã hủy'
+  }
+  return statuses[status] || status
+}
+
+const getStatusTag = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    upcoming: 'warning',
+    ongoing: 'primary',
+    completed: 'success',
+    cancelled: 'info'
+  }
+  return tags[status] || 'info'
+}
+
+const loadEvents = async () => {
+  loading.value = true
+  try {
+    const params = {
+      page: currentPage.value,
+      per_page: pageSize.value
+    }
+    const response = await api.getEvents(params)
+    events.value = response.data
+    total.value = response.total
+  } catch (error) {
+    // Fallback to mock data for demo
+    events.value = [
+      {
+        id: 1,
+        title: 'Họp cư dân tháng 1',
+        type: 'meeting',
+        start_date: '2024-01-25 19:00:00',
+        end_date: '2024-01-25 21:00:00',
+        location: 'Hội trường tầng 1',
+        status: 'upcoming',
+        description: 'Họp cư dân định kỳ tháng 1',
+        max_participants: 100,
+        current_participants: 45,
+        created_by: 1,
+        created_at: '2024-01-15',
+        updated_at: '2024-01-15'
+      }
+    ]
+    total.value = events.value.length
+    ElMessage.warning('Sử dụng dữ liệu demo - API chưa available')
+  } finally {
+    loading.value = false
+  }
+}
+
+
+
+const formatDateTime = (dateString: string): string => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleString('vi-VN')
+}
+
 const saveEvent = async () => {
   try {
     await eventFormRef.value.validate()
     
-    // TODO: Implement API call
     if (editingEvent.value) {
+      // TODO: Implement when API is ready
       // await api.updateEvent(editingEvent.value.id, eventForm.value)
-      ElMessage.success('Cập nhật sự kiện thành công')
+      ElMessage.success('Cập nhật sự kiện thành công (demo)')
     } else {
+      // TODO: Implement when API is ready
       // await api.createEvent(eventForm.value)
-      ElMessage.success('Tạo sự kiện thành công')
+      ElMessage.success('Tạo sự kiện thành công (demo)')
     }
     
     showCreateDialog.value = false
     resetForm()
-    fetchEvents()
-  } catch (error) {
-    ElMessage.error('Lỗi khi lưu sự kiện')
+    loadEvents()
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi lưu sự kiện')
   }
 }
 
@@ -359,23 +385,23 @@ const resetForm = () => {
 const handleSizeChange = (size: number) => {
   pageSize.value = size
   currentPage.value = 1
-  fetchEvents()
+  loadEvents()
 }
 
 const handleCurrentChange = (page: number) => {
   currentPage.value = page
-  fetchEvents()
+  loadEvents()
 }
 
 // Lifecycle
 onMounted(() => {
-  fetchEvents()
+  loadEvents()
 })
 </script>
 
 <style scoped>
 .events-page {
-  padding: 20px;
+  height: 100%;
 }
 
 .page-header {
@@ -390,19 +416,27 @@ onMounted(() => {
   color: #303133;
 }
 
-.table-toolbar {
-  margin-bottom: 20px;
+.event-dates {
+  font-size: 12px;
 }
 
-.filters {
+.date-row {
+  margin-bottom: 4px;
+}
+
+.date-row:last-child {
+  margin-bottom: 0;
+}
+
+.participants-info {
   display: flex;
-  gap: 15px;
+  flex-direction: column;
   align-items: center;
+  gap: 4px;
 }
 
-.pagination-wrapper {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
+.participants-text {
+  font-size: 12px;
+  color: #666;
 }
 </style> 

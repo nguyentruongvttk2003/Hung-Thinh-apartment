@@ -1,5 +1,6 @@
 <template>
-  <div class="profile-page">
+  <AppLayout>
+    <div class="profile-page">
     <div class="page-header">
       <h1>Thông tin cá nhân</h1>
     </div>
@@ -165,13 +166,14 @@
         </el-col>
       </el-row>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Clock } from '@element-plus/icons-vue'
+import AppLayout from '@/components/Layout/AppLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()

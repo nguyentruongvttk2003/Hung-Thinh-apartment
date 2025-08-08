@@ -1,5 +1,6 @@
 <template>
-  <div class="apartment-detail-page">
+  <AppLayout>
+    <div class="apartment-detail-page">
     <div class="page-header">
       <el-button @click="$router.go(-1)" icon="ArrowLeft">Quay lại</el-button>
       <h1>Chi tiết căn hộ {{ apartment?.apartment_number }}</h1>
@@ -226,6 +227,10 @@
       </el-row>
     </div>
 
+    <div v-else-if="!loading && !apartment" class="error-container">
+      <el-empty description="Không tìm thấy thông tin căn hộ" />
+    </div>
+
     <!-- Add/Edit Resident Dialog -->
     <el-dialog
       v-model="showAddResidentDialog"
@@ -265,7 +270,8 @@
         <el-button type="primary" @click="saveResident">Lưu</el-button>
       </template>
     </el-dialog>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -273,6 +279,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, User, Document, Money, Warning, Clock, Bell, Tools } from '@element-plus/icons-vue'
+import AppLayout from '@/components/Layout/AppLayout.vue'
 import type { Apartment, Resident } from '@/types'
 
 const route = useRoute()
@@ -286,10 +293,17 @@ const editingResident = ref<Resident | null>(null)
 const apartmentFormRef = ref()
 const residentFormRef = ref()
 
+// Define activity type for recentActivities
+interface Activity {
+  id: number
+  title: string
+  created_at: string
+}
+
 // Data
 const apartment = ref<Apartment | null>(null)
 const residents = ref<Resident[]>([])
-const recentActivities = ref([])
+const recentActivities = ref<Activity[]>([])
 const stats = ref({
   total_residents: 0,
   total_invoices: 0,
@@ -353,9 +367,10 @@ const fetchApartmentDetail = async () => {
       block: 'A',
       floor: 1,
       area: 85.5,
-      type: '2BR',
-      status: 'rented',
+      type: '2br',
+      status: 'occupied',
       description: 'Căn hộ 2 phòng ngủ, view đẹp',
+      owner_id: 1,
       created_at: '2024-01-01',
       updated_at: '2024-01-15'
     }
@@ -381,15 +396,30 @@ const fetchApartmentDetail = async () => {
       pending_feedbacks: 1
     }
     
-    // Update form
-    apartmentForm.value = {
-      apartment_number: apartment.value.apartment_number,
-      block: apartment.value.block,
-      floor: apartment.value.floor,
-      area: apartment.value.area,
-      type: apartment.value.type,
-      status: apartment.value.status,
-      description: apartment.value.description || ''
+    recentActivities.value = [
+      {
+        id: 1,
+        title: 'Thanh toán hóa đơn tháng 1',
+        created_at: '2024-01-20 10:30:00'
+      },
+      {
+        id: 2,
+        title: 'Thêm cư dân mới',
+        created_at: '2024-01-18 14:15:00'
+      }
+    ]
+    
+    // Update form - apartment.value is guaranteed to not be null here
+    if (apartment.value) {
+      apartmentForm.value = {
+        apartment_number: apartment.value.apartment_number,
+        block: apartment.value.block,
+        floor: apartment.value.floor,
+        area: apartment.value.area,
+        type: apartment.value.type,
+        status: apartment.value.status,
+        description: apartment.value.description || ''
+      }
     }
   } catch (error) {
     ElMessage.error('Lỗi khi tải thông tin căn hộ')
@@ -406,7 +436,9 @@ const saveApartment = async () => {
     // await api.updateApartment(apartment.value.id, apartmentForm.value)
     
     // Update local data
-    Object.assign(apartment.value, apartmentForm.value)
+    if (apartment.value) {
+      Object.assign(apartment.value, apartmentForm.value)
+    }
     
     ElMessage.success('Cập nhật thông tin căn hộ thành công')
     editMode.value = false
@@ -417,14 +449,16 @@ const saveApartment = async () => {
 
 const cancelEdit = () => {
   // Reset form to original values
-  apartmentForm.value = {
-    apartment_number: apartment.value?.apartment_number || '',
-    block: apartment.value?.block || '',
-    floor: apartment.value?.floor || 1,
-    area: apartment.value?.area || 0,
-    type: apartment.value?.type || '',
-    status: apartment.value?.status || '',
-    description: apartment.value?.description || ''
+  if (apartment.value) {
+    apartmentForm.value = {
+      apartment_number: apartment.value.apartment_number,
+      block: apartment.value.block,
+      floor: apartment.value.floor,
+      area: apartment.value.area,
+      type: apartment.value.type,
+      status: apartment.value.status,
+      description: apartment.value.description || ''
+    }
   }
   editMode.value = false
 }

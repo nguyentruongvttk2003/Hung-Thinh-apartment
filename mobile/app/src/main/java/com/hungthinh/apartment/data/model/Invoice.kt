@@ -77,4 +77,18 @@ data class Invoice(
     fun getFormattedAmount(): String {
         return String.format("%,.0f VNĐ", amount)
     }
-} 
+}
+
+data class PaymentRequest(
+    @SerializedName("invoice_id")
+    val invoiceId: Int,
+    
+    @SerializedName("payment_method")
+    val paymentMethod: String,
+    
+    @SerializedName("payment_reference")
+    val paymentReference: String?,
+    
+    @SerializedName("notes")
+    val notes: String?
+) 

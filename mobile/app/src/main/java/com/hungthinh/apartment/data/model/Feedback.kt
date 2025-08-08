@@ -100,4 +100,30 @@ data class Feedback(
     fun isInProgress(): Boolean = status == "in_progress"
     fun isCompleted(): Boolean = status == "completed"
     fun isUrgent(): Boolean = priority == "urgent"
-} 
+}
+
+data class FeedbackRequest(
+    @SerializedName("category")
+    val category: String,
+    
+    @SerializedName("priority")
+    val priority: String,
+    
+    @SerializedName("title")
+    val title: String,
+    
+    @SerializedName("description")
+    val description: String,
+    
+    @SerializedName("location")
+    val location: String?,
+    
+    @SerializedName("contact_preferred")
+    val contactPreferred: String?,
+    
+    @SerializedName("urgency_level")
+    val urgencyLevel: Int = 1,
+    
+    @SerializedName("attachments")
+    val attachments: List<String>? = null
+) 

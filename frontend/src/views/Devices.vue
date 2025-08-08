@@ -1,84 +1,36 @@
 <template>
-  <div class="devices-page">
-    <div class="page-header">
-      <h1>Quản lý Thiết bị</h1>
-      <el-button type="primary" @click="showCreateDialog = true">
-        <el-icon><Plus /></el-icon>
-        Thêm thiết bị
-      </el-button>
-    </div>
-
-    <el-card>
-      <div class="table-toolbar">
-        <div class="filters">
-          <el-input
-            v-model="searchQuery"
-            placeholder="Tìm kiếm thiết bị..."
-            style="width: 300px"
-            clearable
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
-          <el-select v-model="statusFilter" placeholder="Trạng thái" clearable>
-            <el-option label="Hoạt động" value="active" />
-            <el-option label="Bảo trì" value="maintenance" />
-            <el-option label="Hỏng" value="broken" />
-          </el-select>
-          <el-select v-model="typeFilter" placeholder="Loại thiết bị" clearable>
-            <el-option label="Thang máy" value="elevator" />
-            <el-option label="Hệ thống điện" value="electrical" />
-            <el-option label="Hệ thống nước" value="water" />
-            <el-option label="Camera" value="camera" />
-            <el-option label="Khác" value="other" />
-          </el-select>
-        </div>
+  <AppLayout>
+    <div class="devices-page">
+      <div class="page-header">
+        <h1>Quản lý Thiết bị</h1>
       </div>
 
-      <el-table :data="filteredDevices" v-loading="loading" stripe>
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="Tên thiết bị" />
-        <el-table-column prop="type" label="Loại thiết bị">
-          <template #default="{ row }">
-            <el-tag :type="getDeviceTypeTag(row.type)">
-              {{ getDeviceTypeLabel(row.type) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="location" label="Vị trí" />
-        <el-table-column prop="status" label="Trạng thái">
-          <template #default="{ row }">
-            <el-tag :type="getStatusTag(row.status)">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="last_maintenance" label="Bảo trì cuối" />
-        <el-table-column prop="next_maintenance" label="Bảo trì tiếp theo" />
-        <el-table-column label="Thao tác" width="200">
-          <template #default="{ row }">
-            <el-button size="small" @click="viewDevice(row)">Xem</el-button>
-            <el-button size="small" type="primary" @click="editDevice(row)">Sửa</el-button>
-            <el-button size="small" type="danger" @click="deleteDevice(row)">Xóa</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <DataTable
+        title="Danh sách thiết bị"
+        :data="devices"
+        :columns="columns"
+        :loading="loading"
+        :total="total"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :filters="filters"
+        :actions="actions"
+        :search-keys="['name', 'location', 'description']"
+        searchPlaceholder="Tìm kiếm theo tên, vị trí..."
+        exportable
+        @refresh="loadDevices"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      >
+        <template #toolbar-actions>
+          <el-button type="primary" @click="showCreateDialog = true">
+            <el-icon><Plus /></el-icon>
+            Thêm thiết bị
+          </el-button>
+        </template>
+      </DataTable>
 
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
-    </el-card>
-
-    <!-- Create/Edit Dialog -->
+      <!-- Create/Edit Dialog -->
     <el-dialog
       v-model="showCreateDialog"
       :title="editingDevice ? 'Sửa thiết bị' : 'Thêm thiết bị mới'"
@@ -125,21 +77,22 @@
         <el-button type="primary" @click="saveDevice">Lưu</el-button>
       </template>
     </el-dialog>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, View } from '@element-plus/icons-vue'
+import AppLayout from '@/components/Layout/AppLayout.vue'
+import DataTable from '@/components/DataTable.vue'
+import api from '@/services/api'
 import type { Device } from '@/types'
 
 // Reactive data
 const loading = ref(false)
 const devices = ref<Device[]>([])
-const searchQuery = ref('')
-const statusFilter = ref('')
-const typeFilter = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
@@ -164,102 +117,8 @@ const deviceRules = {
   status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }]
 }
 
-// Computed
-const filteredDevices = computed(() => {
-  let filtered = devices.value
-
-  if (searchQuery.value) {
-    filtered = filtered.filter(device =>
-      device.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      device.location.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-
-  if (statusFilter.value) {
-    filtered = filtered.filter(device => device.status === statusFilter.value)
-  }
-
-  if (typeFilter.value) {
-    filtered = filtered.filter(device => device.type === typeFilter.value)
-  }
-
-  return filtered
-})
-
-// Methods
-const getDeviceTypeLabel = (type: string) => {
-  const types: Record<string, string> = {
-    elevator: 'Thang máy',
-    electrical: 'Hệ thống điện',
-    water: 'Hệ thống nước',
-    camera: 'Camera',
-    other: 'Khác'
-  }
-  return types[type] || type
-}
-
-const getDeviceTypeTag = (type: string) => {
-  const tags: Record<string, string> = {
-    elevator: 'primary',
-    electrical: 'warning',
-    water: 'info',
-    camera: 'success',
-    other: ''
-  }
-  return tags[type] || ''
-}
-
-const getStatusLabel = (status: string) => {
-  const statuses: Record<string, string> = {
-    active: 'Hoạt động',
-    maintenance: 'Bảo trì',
-    broken: 'Hỏng'
-  }
-  return statuses[status] || status
-}
-
-const getStatusTag = (status: string) => {
-  const tags: Record<string, string> = {
-    active: 'success',
-    maintenance: 'warning',
-    broken: 'danger'
-  }
-  return tags[status] || ''
-}
-
-const fetchDevices = async () => {
-  loading.value = true
-  try {
-    // TODO: Implement API call
-    // const response = await api.getDevices({ page: currentPage.value, per_page: pageSize.value })
-    // devices.value = response.data.data
-    // total.value = response.data.total
-    
-    // Mock data for now
-    devices.value = [
-      {
-        id: 1,
-        name: 'Thang máy A',
-        type: 'elevator',
-        location: 'Tòa A',
-        status: 'active',
-        description: 'Thang máy tòa A',
-        last_maintenance: '2024-01-15',
-        next_maintenance: '2024-04-15',
-        created_at: '2024-01-01',
-        updated_at: '2024-01-15'
-      }
-    ]
-    total.value = devices.value.length
-  } catch (error) {
-    ElMessage.error('Lỗi khi tải danh sách thiết bị')
-  } finally {
-    loading.value = false
-  }
-}
-
+// Forward declarations for handlers
 const viewDevice = (device: Device) => {
-  // TODO: Implement view device details
   ElMessage.info(`Xem chi tiết thiết bị: ${device.name}`)
 }
 
@@ -287,11 +146,9 @@ const deleteDevice = async (device: Device) => {
       }
     )
     
-    // TODO: Implement API call
-    // await api.deleteDevice(device.id)
-    
+    // Mock delete for demo - replace with real API call when available
     ElMessage.success('Xóa thiết bị thành công')
-    fetchDevices()
+    loadDevices()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('Lỗi khi xóa thiết bị')
@@ -299,23 +156,188 @@ const deleteDevice = async (device: Device) => {
   }
 }
 
+// Table configuration
+const columns = [
+  { prop: 'id', label: 'ID', width: 80 },
+  { prop: 'name', label: 'Tên thiết bị', minWidth: 150 },
+  { 
+    prop: 'type', 
+    label: 'Loại thiết bị', 
+    width: 150,
+    formatter: (row: Device) => getDeviceTypeLabel(row.type)
+  },
+  { prop: 'location', label: 'Vị trí', minWidth: 120 },
+  { 
+    prop: 'status', 
+    label: 'Trạng thái', 
+    width: 120,
+    formatter: (row: Device) => getStatusLabel(row.status)
+  },
+  { 
+    prop: 'last_maintenance', 
+    label: 'Bảo trì cuối', 
+    width: 120,
+    formatter: (row: Device) => formatDate(row.last_maintenance)
+  },
+  { 
+    prop: 'next_maintenance', 
+    label: 'Bảo trì tiếp theo', 
+    width: 120,
+    formatter: (row: Device) => formatDate(row.next_maintenance)
+  }
+]
+
+const filters = [
+  {
+    key: 'status',
+    placeholder: 'Trạng thái',
+    options: [
+      { label: 'Hoạt động', value: 'active' },
+      { label: 'Bảo trì', value: 'maintenance' },
+      { label: 'Hỏng', value: 'broken' }
+    ]
+  },
+  {
+    key: 'type',
+    placeholder: 'Loại thiết bị',
+    options: [
+      { label: 'Thang máy', value: 'elevator' },
+      { label: 'Hệ thống điện', value: 'electrical' },
+      { label: 'Hệ thống nước', value: 'water' },
+      { label: 'Camera', value: 'camera' },
+      { label: 'Khác', value: 'other' }
+    ]
+  }
+]
+
+const actions = [
+  {
+    key: 'view',
+    label: 'Xem',
+    type: 'default',
+    icon: View,
+    handler: viewDevice
+  },
+  {
+    key: 'edit',
+    label: 'Sửa',
+    type: 'primary',
+    icon: Edit,
+    handler: editDevice
+  },
+  {
+    key: 'delete',
+    label: 'Xóa',
+    type: 'danger',
+    icon: Delete,
+    handler: deleteDevice
+  }
+]
+
+// Methods
+const getDeviceTypeLabel = (type: string) => {
+  const types: Record<string, string> = {
+    elevator: 'Thang máy',
+    electrical: 'Hệ thống điện',
+    water: 'Hệ thống nước',
+    camera: 'Camera',
+    other: 'Khác'
+  }
+  return types[type] || type
+}
+
+const getDeviceTypeTag = (type: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    elevator: 'primary',
+    electrical: 'warning',
+    water: 'info',
+    camera: 'success',
+    other: 'info'
+  }
+  return tags[type] || 'info'
+}
+
+const getStatusLabel = (status: string) => {
+  const statuses: Record<string, string> = {
+    active: 'Hoạt động',
+    maintenance: 'Bảo trì',
+    broken: 'Hỏng'
+  }
+  return statuses[status] || status
+}
+
+const getStatusTag = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    active: 'success',
+    maintenance: 'warning',
+    broken: 'danger'
+  }
+  return tags[status] || 'info'
+}
+
+const loadDevices = async () => {
+  loading.value = true
+  try {
+    // Mock data for demo - replace with real API call when available
+    const mockDevices: Device[] = [
+      {
+        id: 1,
+        name: 'Thang máy A',
+        type: 'elevator',
+        location: 'Tòa A',
+        status: 'active',
+        description: 'Thang máy tòa A',
+        last_maintenance: '2024-01-15',
+        next_maintenance: '2024-04-15',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-15'
+      },
+      {
+        id: 2,
+        name: 'Camera sảnh',
+        type: 'camera',
+        location: 'Sảnh tầng 1',
+        status: 'active',
+        description: 'Camera an ninh sảnh chính',
+        last_maintenance: '2024-01-10',
+        next_maintenance: '2024-04-10',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-10'
+      }
+    ]
+    
+    devices.value = mockDevices
+    total.value = mockDevices.length
+  } catch (error) {
+    ElMessage.error('Lỗi khi tải danh sách thiết bị')
+  } finally {
+    loading.value = false
+  }
+}
+
+
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString('vi-VN')
+}
+
 const saveDevice = async () => {
   try {
     await deviceFormRef.value.validate()
     
-    // TODO: Implement API call
     if (editingDevice.value) {
-      // await api.updateDevice(editingDevice.value.id, deviceForm.value)
+      // Mock update for demo - replace with real API call when available
       ElMessage.success('Cập nhật thiết bị thành công')
     } else {
-      // await api.createDevice(deviceForm.value)
+      // Mock create for demo - replace with real API call when available
       ElMessage.success('Thêm thiết bị thành công')
     }
     
     showCreateDialog.value = false
     resetForm()
-    fetchDevices()
-  } catch (error) {
+    loadDevices()
+  } catch (error: any) {
     ElMessage.error('Lỗi khi lưu thiết bị')
   }
 }
@@ -335,23 +357,23 @@ const resetForm = () => {
 const handleSizeChange = (size: number) => {
   pageSize.value = size
   currentPage.value = 1
-  fetchDevices()
+  loadDevices()
 }
 
 const handleCurrentChange = (page: number) => {
   currentPage.value = page
-  fetchDevices()
+  loadDevices()
 }
 
 // Lifecycle
 onMounted(() => {
-  fetchDevices()
+  loadDevices()
 })
 </script>
 
 <style scoped>
 .devices-page {
-  padding: 20px;
+  height: 100%;
 }
 
 .page-header {
@@ -366,19 +388,15 @@ onMounted(() => {
   color: #303133;
 }
 
-.table-toolbar {
-  margin-bottom: 20px;
+.maintenance-info {
+  font-size: 12px;
 }
 
-.filters {
-  display: flex;
-  gap: 15px;
-  align-items: center;
+.maintenance-date {
+  margin-bottom: 4px;
 }
 
-.pagination-wrapper {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
+.maintenance-date:last-child {
+  margin-bottom: 0;
 }
 </style> 

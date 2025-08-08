@@ -20,9 +20,23 @@ export interface Apartment {
   type: 'studio' | '1br' | '2br' | '3br' | '4br'
   area: number
   status: 'occupied' | 'vacant' | 'maintenance'
+  description?: string
   owner_id: number
   owner?: User
   residents?: User[]
+  created_at: string
+  updated_at: string
+}
+
+// Resident types
+export interface Resident {
+  id: number
+  name: string
+  phone: string
+  email: string
+  relationship: string
+  is_owner: boolean
+  apartment_id: number
   created_at: string
   updated_at: string
 }
@@ -89,9 +103,10 @@ export interface Payment {
 export interface Device {
   id: number
   name: string
-  type: 'elevator' | 'generator' | 'pump' | 'camera' | 'other'
+  type: 'elevator' | 'electrical' | 'water' | 'camera' | 'other'
   location: string
-  status: 'operational' | 'maintenance' | 'broken'
+  status: 'active' | 'maintenance' | 'broken'
+  description?: string
   last_maintenance: string
   next_maintenance: string
   assigned_to?: number

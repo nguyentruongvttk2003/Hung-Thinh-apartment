@@ -1,5 +1,6 @@
 <template>
-  <div class="notifications-page">
+  <AppLayout>
+    <div class="notifications-page">
     <div class="page-header">
       <h2>Quản lý thông báo</h2>
       <el-button type="primary" @click="showCreateDialog = true">
@@ -108,13 +109,15 @@
           </el-button>
         </template>
       </el-dialog>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import AppLayout from '@/components/Layout/AppLayout.vue'
 import api from '@/services/api'
 import type { Notification } from '@/types'
 import { Plus } from '@element-plus/icons-vue'

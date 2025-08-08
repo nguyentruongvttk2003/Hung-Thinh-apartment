@@ -1,5 +1,6 @@
 <template>
-  <div class="apartments-page">
+  <AppLayout>
+    <div class="apartments-page">
     <div class="page-header">
       <h2>Quản lý căn hộ</h2>
       <el-button type="primary" @click="showCreateDialog = true">
@@ -156,7 +157,8 @@
             </el-button>
           </template>
         </el-dialog>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -164,6 +166,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import AppLayout from '@/components/Layout/AppLayout.vue'
 import api from '@/services/api'
 import type { Apartment } from '@/types'
 import { Plus } from '@element-plus/icons-vue'

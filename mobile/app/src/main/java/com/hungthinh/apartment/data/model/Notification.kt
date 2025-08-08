@@ -58,4 +58,30 @@ data class Notification(
         // TODO: Implement date formatting
         return createdAt
     }
-} 
+}
+
+data class NotificationRequest(
+    @SerializedName("title")
+    val title: String,
+    
+    @SerializedName("message")
+    val message: String,
+    
+    @SerializedName("type")
+    val type: String,
+    
+    @SerializedName("priority")
+    val priority: String,
+    
+    @SerializedName("recipient_type")
+    val recipientType: String,
+    
+    @SerializedName("recipient_ids")
+    val recipientIds: List<Int>? = null,
+    
+    @SerializedName("apartment_ids")
+    val apartmentIds: List<Int>? = null,
+    
+    @SerializedName("expires_at")
+    val expiresAt: String? = null
+) 

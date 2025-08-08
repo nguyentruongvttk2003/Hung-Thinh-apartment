@@ -1,5 +1,6 @@
 <template>
-  <div class="votes-page">
+  <AppLayout>
+    <div class="votes-page">
     <div class="page-header">
       <h1>Quản lý Biểu quyết</h1>
       <el-button type="primary" @click="showCreateDialog = true">
@@ -142,14 +143,16 @@
         <el-button @click="showCreateDialog = false">Hủy</el-button>
         <el-button type="primary" @click="saveVote">Lưu</el-button>
       </template>
-    </el-dialog>
-  </div>
+          </el-dialog>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
+import AppLayout from '@/components/Layout/AppLayout.vue'
 import type { Vote } from '@/types'
 
 // Reactive data
