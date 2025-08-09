@@ -14,6 +14,10 @@ use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\VoteController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\FileUploadController;
+use App\Http\Controllers\Api\ActivityLogController;
+use App\Http\Controllers\Api\HealthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +29,10 @@ use App\Http\Controllers\Api\DashboardController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// Health check endpoints
+Route::get('health', [HealthController::class, 'check']);
+Route::get('health/database', [HealthController::class, 'database']);
 
 // Public routes
 Route::prefix('auth')->group(function () {
@@ -39,6 +47,43 @@ Route::get('test-users', function () {
         'users' => $users,
         'count' => $users->count()
     ]);
+});
+
+// Test JWT authentication
+Route::post('test-auth', function (\Illuminate\Http\Request $request) {
+    try {
+        $credentials = $request->only('email', 'password');
+        
+        if (!$token = auth('api')->attempt($credentials)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid credentials'
+            ], 401);
+        }
+        
+        $user = auth('api')->user();
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'token' => $token,
+                'user' => $user,
+                'jwt_config' => [
+                    'secret_exists' => !empty(config('jwt.secret')),
+                    'ttl' => config('jwt.ttl'),
+                    'algo' => config('jwt.algo')
+                ]
+            ]
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ], 500);
+    }
 });
 
 Route::get('test-simple', function () {
@@ -154,6 +199,7 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('profile', [AuthController::class, 'userProfile']);
+        Route::get('me', [AuthController::class, 'userProfile']); // Add alias for mobile app
         Route::post('change-password', [AuthController::class, 'changePassword']);
         Route::post('update-profile', [AuthController::class, 'updateProfile']);
     });
@@ -187,7 +233,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::apiResource('notifications', NotificationController::class);
     Route::post('notifications/{notification}/send', [NotificationController::class, 'send']);
     Route::get('notifications/received', [NotificationController::class, 'received']);
-    Route::post('notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead']);
+    Route::put('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::put('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
 
     // Feedbacks
     Route::apiResource('feedbacks', FeedbackController::class);
@@ -216,16 +264,39 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('maintenances/device/{device}', [MaintenanceController::class, 'byDevice']);
 
     // Events
-    Route::apiResource('events', EventController::class);
     Route::get('events/upcoming', [EventController::class, 'upcoming']);
+    Route::apiResource('events', EventController::class);
 
     // Votes
-    Route::apiResource('votes', VoteController::class);
+    Route::get('votes/active', [VoteController::class, 'active']);
     Route::post('votes/{vote}/activate', [VoteController::class, 'activate']);
     Route::post('votes/{vote}/close', [VoteController::class, 'close']);
     Route::post('votes/{vote}/vote', [VoteController::class, 'submitVote']);
     Route::get('votes/{vote}/results', [VoteController::class, 'results']);
-    Route::get('votes/active', [VoteController::class, 'active']);
+    Route::apiResource('votes', VoteController::class);
+
+    // Search routes
+    Route::get('search/global', [SearchController::class, 'globalSearch']);
+    Route::post('search/advanced', [SearchController::class, 'advancedSearch']);
+    Route::get('search/suggestions', [SearchController::class, 'getSearchSuggestions']);
+
+    // File upload routes
+    Route::post('files/upload', [FileUploadController::class, 'uploadSingle']);
+    Route::post('files/upload-multiple', [FileUploadController::class, 'uploadMultiple']);
+    Route::post('files/upload-avatar', [FileUploadController::class, 'uploadAvatar']);
+    Route::post('files/upload-feedback-attachment', [FileUploadController::class, 'uploadFeedbackAttachment']);
+    Route::get('files/info', [FileUploadController::class, 'getFileInfo']);
+    Route::delete('files/delete', [FileUploadController::class, 'deleteFile']);
+    Route::get('files/list', [FileUploadController::class, 'listFiles']);
+
+    // Activity logs routes
+    Route::apiResource('activity-logs', ActivityLogController::class)->except(['update', 'destroy']);
+    Route::get('activity-logs/user/mine', [ActivityLogController::class, 'getUserLogs']);
+    Route::get('activity-logs/statistics', [ActivityLogController::class, 'getStatistics']);
+    Route::get('activity-logs/recent', [ActivityLogController::class, 'getRecentActivities']);
+    Route::post('activity-logs/cleanup', [ActivityLogController::class, 'cleanup']);
+    Route::get('activity-logs/export', [ActivityLogController::class, 'export']);
+    Route::get('activity-logs/trends', [ActivityLogController::class, 'getTrends']);
 
     // Admin only routes
     Route::group(['middleware' => 'admin'], function () {

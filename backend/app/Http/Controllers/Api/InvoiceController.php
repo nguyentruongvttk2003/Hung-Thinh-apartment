@@ -8,10 +8,61 @@ use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $invoices = Invoice::latest()->paginate(15);
-        return response()->json($invoices);
+        try {
+            $user = auth()->user();
+            $page = $request->get('page', 1);
+            $limit = $request->get('limit', 10);
+            
+            $invoices = Invoice::where('apartment_id', $user->apartment_id)
+                ->latest()
+                ->paginate($limit, ['*'], 'page', $page);
+
+            // Format invoices for mobile app
+            $invoicesData = $invoices->map(function ($invoice) {
+                return [
+                    'id' => $invoice->id,
+                    'title' => $invoice->description,
+                    'amount' => $invoice->total_amount,
+                    'status' => $this->mapInvoiceStatus($invoice->status),
+                    'dueDate' => $invoice->due_date,
+                    'description' => $invoice->description,
+                    'createdAt' => $invoice->created_at->toISOString(),
+                    'updatedAt' => $invoice->updated_at->toISOString(),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'data' => $invoicesData->values(),
+                    'currentPage' => $invoices->currentPage(),
+                    'totalPages' => $invoices->lastPage(),
+                    'total' => $invoices->total(),
+                ],
+                'message' => 'Invoices retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi tải hóa đơn: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function mapInvoiceStatus($status)
+    {
+        switch ($status) {
+            case 'pending':
+                return 'pending';
+            case 'paid':
+                return 'paid';
+            case 'overdue':
+                return 'overdue';
+            default:
+                return 'pending';
+        }
     }
 
     public function store(Request $request)

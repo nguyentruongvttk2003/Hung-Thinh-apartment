@@ -35,18 +35,28 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'success' => false,
+                'error' => 'Dữ liệu không hợp lệ',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         if (!$token = auth('api')->attempt($validator->validated())) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json([
+                'success' => false,
+                'error' => 'Email hoặc mật khẩu không đúng'
+            ], 401);
         }
 
         $user = auth('api')->user();
         
         if (!$user->isActive()) {
             auth('api')->logout();
-            return response()->json(['error' => 'Tài khoản đã bị khóa'], 401);
+            return response()->json([
+                'success' => false,
+                'error' => 'Tài khoản đã bị khóa'
+            ], 401);
         }
 
         return $this->createNewToken($token);
@@ -114,7 +124,10 @@ class AuthController extends Controller
         $user = auth('api')->user();
         $user->load(['residences.apartment', 'ownedApartments']);
         
-        return response()->json($user);
+        return response()->json([
+            'success' => true,
+            'data' => $user
+        ]);
     }
 
     /**
@@ -129,15 +142,18 @@ class AuthController extends Controller
         $user = auth('api')->user();
         
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60, // Use config value instead
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-                'status' => $user->status,
+            'success' => true,
+            'data' => [
+                'token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'status' => $user->status,
+                ]
             ]
         ]);
     }

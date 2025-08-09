@@ -23,7 +23,7 @@
             </template>
           </el-input>
           <el-select v-model="statusFilter" placeholder="Trạng thái" clearable>
-            <el-option label="Chờ xử lý" value="pending" />
+            <el-option label="Đã lên lịch" value="scheduled" />
             <el-option label="Đang xử lý" value="in_progress" />
             <el-option label="Hoàn thành" value="completed" />
             <el-option label="Đã hủy" value="cancelled" />
@@ -43,9 +43,10 @@
         <el-table-column prop="device_name" label="Thiết bị" />
         <el-table-column prop="priority" label="Độ ưu tiên">
           <template #default="{ row }">
-            <el-tag :type="getPriorityTag(row.priority)">
+            <el-tag v-if="row.priority" :type="getPriorityTag(row.priority)">
               {{ getPriorityLabel(row.priority) }}
             </el-tag>
+            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="Trạng thái">
@@ -197,7 +198,7 @@ const filteredMaintenances = computed(() => {
   if (searchQuery.value) {
     filtered = filtered.filter(maintenance =>
       maintenance.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      maintenance.device_name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      (maintenance.device_name && maintenance.device_name.toLowerCase().includes(searchQuery.value.toLowerCase()))
     )
   }
 
@@ -223,19 +224,19 @@ const getPriorityLabel = (priority: string) => {
   return priorities[priority] || priority
 }
 
-const getPriorityTag = (priority: string) => {
-  const tags: Record<string, string> = {
+const getPriorityTag = (priority: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
     low: 'info',
     medium: 'warning',
     high: 'danger',
     urgent: 'danger'
   }
-  return tags[priority] || ''
+  return tags[priority] || 'info'
 }
 
 const getStatusLabel = (status: string) => {
   const statuses: Record<string, string> = {
-    pending: 'Chờ xử lý',
+    scheduled: 'Đã lên lịch',
     in_progress: 'Đang xử lý',
     completed: 'Hoàn thành',
     cancelled: 'Đã hủy'
@@ -243,14 +244,14 @@ const getStatusLabel = (status: string) => {
   return statuses[status] || status
 }
 
-const getStatusTag = (status: string) => {
-  const tags: Record<string, string> = {
-    pending: 'warning',
+const getStatusTag = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    scheduled: 'info',
     in_progress: 'primary',
     completed: 'success',
-    cancelled: 'info'
+    cancelled: 'danger'
   }
-  return tags[status] || ''
+  return tags[status] || 'info'
 }
 
 const fetchMaintenances = async () => {
@@ -268,13 +269,13 @@ const fetchMaintenances = async () => {
         title: 'Bảo trì thang máy A',
         device_id: 1,
         device_name: 'Thang máy A',
-        type: 'scheduled',
-        priority: 'medium',
-        status: 'in_progress',
+        type: 'preventive' as const,
+        priority: 'medium' as const,
+        status: 'in_progress' as const,
         assigned_to: 'Kỹ thuật viên A',
         description: 'Bảo trì định kỳ thang máy',
         scheduled_date: '2024-01-20 09:00:00',
-        completed_date: null,
+        completed_date: undefined,
         created_at: '2024-01-15',
         updated_at: '2024-01-15'
       }
@@ -298,8 +299,8 @@ const editMaintenance = (maintenance: Maintenance) => {
     title: maintenance.title,
     device_id: maintenance.device_id.toString(),
     type: maintenance.type,
-    priority: maintenance.priority,
-    assigned_to: maintenance.assigned_to,
+    priority: maintenance.priority || '',
+    assigned_to: maintenance.assigned_to || '',
     scheduled_date: maintenance.scheduled_date,
     description: maintenance.description || ''
   }

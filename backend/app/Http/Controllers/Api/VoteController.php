@@ -69,7 +69,45 @@ class VoteController extends Controller
 
     public function active()
     {
-        $votes = Vote::where('status', 'active')->get();
-        return response()->json($votes);
+        try {
+            $votes = Vote::where('status', 'active')
+                ->with(['creator', 'options'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($vote) {
+                    return [
+                        'id' => $vote->id,
+                        'title' => $vote->title,
+                        'description' => $vote->description,
+                        'type' => $vote->type,
+                        'scope' => $vote->scope,
+                        'target_scope' => $vote->target_scope,
+                        'start_date' => $vote->start_time,
+                        'end_date' => $vote->end_time,
+                        'status' => $vote->status,
+                        'require_quorum' => $vote->require_quorum,
+                        'quorum_percentage' => $vote->quorum_percentage,
+                        'created_by' => $vote->created_by,
+                        'notes' => $vote->notes,
+                        'created_at' => $vote->created_at,
+                        'updated_at' => $vote->updated_at,
+                        'creator' => $vote->creator,
+                        'options' => $vote->options,
+                        'totalVotes' => $vote->responses ? $vote->responses->count() : 0,
+                    ];
+                });
+            
+            return response()->json([
+                'success' => true,
+                'data' => $votes,
+                'message' => 'Active votes retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching active votes: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
     }
 }

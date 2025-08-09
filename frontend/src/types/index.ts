@@ -118,13 +118,15 @@ export interface Device {
 export interface Maintenance {
   id: number
   device_id: number
+  device_name?: string
   title: string
   description: string
   type: 'preventive' | 'corrective' | 'emergency'
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+  priority?: 'low' | 'medium' | 'high' | 'urgent'
   scheduled_date: string
   completed_date?: string
-  assigned_to?: number
+  assigned_to?: string
   cost?: number
   notes?: string
   created_at: string
