@@ -8,10 +8,74 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $payments = Payment::latest()->paginate(15);
-        return response()->json($payments);
+        try {
+            \Log::info('PaymentController index called', [
+                'params' => $request->all(),
+                'user' => auth()->user()?->id
+            ]);
+
+            $query = Payment::query();
+            
+            \Log::info('Initial payment count', ['count' => $query->count()]);
+
+            // Filter by invoice if provided - only if not empty
+            if ($request->has('invoice_id') && !empty($request->invoice_id)) {
+                $query->where('invoice_id', $request->invoice_id);
+                \Log::info('Filtered by invoice_id', ['invoice_id' => $request->invoice_id, 'count' => $query->count()]);
+            }
+
+            // Filter by payment method if provided - only if not empty
+            if ($request->has('payment_method') && !empty($request->payment_method)) {
+                $query->where('payment_method', $request->payment_method);
+                \Log::info('Filtered by payment_method', ['payment_method' => $request->payment_method, 'count' => $query->count()]);
+            }
+
+            // Filter by status if provided - only if not empty
+            if ($request->has('status') && !empty($request->status)) {
+                $query->where('status', $request->status);
+                \Log::info('Filtered by status', ['status' => $request->status, 'count' => $query->count()]);
+            }
+
+            // Filter by date range if provided - only if not empty
+            if ($request->has('from_date') && !empty($request->from_date)) {
+                $query->whereDate('created_at', '>=', $request->from_date);
+                \Log::info('Filtered by from_date', ['from_date' => $request->from_date, 'count' => $query->count()]);
+            }
+            if ($request->has('to_date') && !empty($request->to_date)) {
+                $query->whereDate('created_at', '<=', $request->to_date);
+                \Log::info('Filtered by to_date', ['to_date' => $request->to_date, 'count' => $query->count()]);
+            }
+
+            \Log::info('Final query count before pagination', ['count' => $query->count()]);
+
+            // Add relationships
+            $query->with(['invoice.apartment', 'user']);
+
+            $payments = $query->latest()->paginate($request->get('per_page', 15));
+
+            \Log::info('Paginated result', [
+                'items_count' => $payments->count(),
+                'total' => $payments->total(),
+                'current_page' => $payments->currentPage()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $payments->items(),
+                'current_page' => $payments->currentPage(),
+                'last_page' => $payments->lastPage(),
+                'per_page' => $payments->perPage(),
+                'total' => $payments->total(),
+                'message' => 'Payments retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi tải danh sách thanh toán: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)

@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
   <div class="events-page">
     <div class="page-header">
       <h1>Quản lý Sự kiện</h1>
@@ -93,14 +92,13 @@
       </template>
     </el-dialog>
   </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete, View } from '@element-plus/icons-vue'
-import AppLayout from '@/components/Layout/AppLayout.vue'
+
 import DataTable from '@/components/DataTable.vue'
 import api from '@/services/api'
 import type { Event } from '@/types'

@@ -12,6 +12,11 @@ class ApiService {
       headers: API_CONFIG.DEFAULT_HEADERS,
     });
 
+    // Log configuration on startup
+    console.log('🔧 API Service Configuration:');
+    console.log('  Base URL:', API_CONFIG.BASE_URL);
+    console.log('  Timeout:', API_CONFIG.TIMEOUT);
+
     // Request interceptor to add auth token
     this.api.interceptors.request.use(
       async (config) => {
@@ -20,9 +25,10 @@ class ApiService {
           if (token) {
             config.headers.Authorization = `Bearer ${token}`;
           }
-          console.log('API Request:', config.method?.toUpperCase(), config.url);
+          const fullUrl = `${config.baseURL || ''}${config.url || ''}`;
+          console.log('📤 API Request:', config.method?.toUpperCase(), fullUrl);
         } catch (error) {
-          console.log('Error getting token:', error);
+          console.log('⚠️ Error getting token:', error);
         }
         return config;
       },
@@ -34,11 +40,34 @@ class ApiService {
     // Response interceptor to handle errors
     this.api.interceptors.response.use(
       (response) => {
-        console.log('API Response:', response.status, response.config.url);
+        console.log('✅ API Response:', response.status, response.config?.url || 'Unknown URL');
         return response;
       },
       async (error) => {
-        console.log('API Error:', error.response?.status, error.response?.config?.url, error.message);
+        // Enhanced error logging
+        const status = error.response?.status || 'N/A';
+        const url = error.response?.config?.url || error.config?.url || 'Unknown URL';
+        const message = error.message || 'Unknown error';
+        const responseData = error.response?.data || null;
+        
+        console.log('❌ API Error Details:');
+        console.log('  Status:', status);
+        console.log('  URL:', url);
+        console.log('  Message:', message);
+        console.log('  Error Type:', error.code || 'Unknown');
+        
+        if (responseData) {
+          console.log('  Response Data:', responseData);
+        }
+        
+        // Network error specific handling
+        if (error.code === 'NETWORK_ERROR' || message.includes('Network Error')) {
+          console.log('🌐 Network Error - Check:');
+          console.log('  1. Backend server is running');
+          console.log('  2. Correct IP address in config');
+          console.log('  3. Firewall/antivirus settings');
+          console.log('  4. Phone and computer on same network');
+        }
         
         if (error.response?.status === 401) {
           // Clear stored data on unauthorized

@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="feedbacks-page">
     <div class="page-header">
       <h2>Quản lý phản ánh</h2>
@@ -39,6 +38,19 @@
               {{ formatDate(row.created_at) }}
             </template>
           </el-table-column>
+          <el-table-column label="Người phụ trách" width="180">
+            <template #default="{ row }">
+              <div v-if="row.assigned_technician">
+                <el-tag type="success" size="small">
+                  {{ row.assigned_technician.name }}
+                </el-tag>
+                <div class="text-xs text-gray-500 mt-1">
+                  {{ formatDate(row.assigned_at) }}
+                </div>
+              </div>
+              <el-tag v-else type="info" size="small">Chưa phân công</el-tag>
+            </template>
+          </el-table-column>
           <el-table-column label="Thao tác" width="200" fixed="right">
             <template #default="{ row }">
               <el-button size="small" @click="viewFeedback(row)">Xem</el-button>
@@ -60,16 +72,66 @@
           />
         </div>
       </el-card>
+
+      <!-- Assignment Dialog -->
+      <el-dialog
+        v-model="showAssignDialog"
+        title="Phân công phản ánh"
+        width="500px"
+      >
+        <el-form
+          ref="assignFormRef"
+          :model="assignForm"
+          :rules="assignRules"
+          label-width="120px"
+        >
+          <el-form-item label="Phản ánh" prop="title">
+            <el-input :value="selectedFeedback?.title" readonly />
+          </el-form-item>
+          
+          <el-form-item label="Kỹ thuật viên" prop="assigned_to">
+            <el-select 
+              v-model="assignForm.assigned_to" 
+              placeholder="Chọn kỹ thuật viên"
+              style="width: 100%"
+              :loading="loadingTechnicians"
+            >
+              <el-option
+                v-for="tech in technicians"
+                :key="tech.id"
+                :label="`${tech.name} (${tech.email})`"
+                :value="tech.id"
+              />
+            </el-select>
+          </el-form-item>
+          
+          <el-form-item label="Ghi chú" prop="notes">
+            <el-input
+              v-model="assignForm.notes"
+              type="textarea"
+              :rows="3"
+              placeholder="Ghi chú cho kỹ thuật viên..."
+            />
+          </el-form-item>
+        </el-form>
+        
+        <template #footer>
+          <el-button @click="showAssignDialog = false">Hủy</el-button>
+          <el-button type="primary" @click="saveAssignment" :loading="assigning">
+            Phân công
+          </el-button>
+        </template>
+      </el-dialog>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import AppLayout from '@/components/Layout/AppLayout.vue'
+import type { FormInstance, FormRules } from 'element-plus'
+
 import api from '@/services/api'
-import type { Feedback } from '@/types'
+import type { Feedback, User } from '@/types'
 
 // Data
 const feedbacks = ref<Feedback[]>([])
@@ -77,6 +139,26 @@ const loading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
+
+// Assignment data
+const showAssignDialog = ref(false)
+const loadingTechnicians = ref(false)
+const assigning = ref(false)
+const technicians = ref<User[]>([])
+const selectedFeedback = ref<Feedback | null>(null)
+const assignFormRef = ref<FormInstance>()
+
+// Assignment form
+const assignForm = reactive({
+  assigned_to: '',
+  notes: ''
+})
+
+const assignRules: FormRules = {
+  assigned_to: [
+    { required: true, message: 'Vui lòng chọn kỹ thuật viên', trigger: 'change' }
+  ]
+}
 
 // Methods
 async function loadFeedbacks() {
@@ -87,10 +169,25 @@ async function loadFeedbacks() {
       per_page: pageSize.value
     }
     const response = await api.getFeedbacks(params)
-    feedbacks.value = response.data
-    total.value = response.total
-  } catch (error) {
-    ElMessage.error('Không thể tải danh sách phản ánh')
+    console.log('Feedbacks API response:', response)
+    console.log('Response data type:', typeof response.data)
+    console.log('Response data length:', Array.isArray(response.data) ? response.data.length : 'not array')
+    
+    // Handle PaginatedResponse structure
+    if (response.data && Array.isArray(response.data)) {
+      feedbacks.value = response.data
+      total.value = response.total || 0
+    } else {
+      console.warn('Unexpected response structure:', response)
+      feedbacks.value = []
+      total.value = 0
+    }
+    
+    console.log('Final feedbacks count:', feedbacks.value.length)
+  } catch (error: any) {
+    console.error('Load feedbacks error:', error)
+    console.error('Error response:', error.response?.data)
+    ElMessage.error('Không thể tải danh sách phản ánh: ' + (error.message || 'Unknown error'))
   } finally {
     loading.value = false
   }
@@ -160,8 +257,86 @@ function viewFeedback(feedback: Feedback) {
   ElMessage.info(`Xem phản ánh: ${feedback.title}`)
 }
 
-function assignFeedback(feedback: Feedback) {
-  ElMessage.info(`Phân công phản ánh: ${feedback.title}`)
+async function assignFeedback(feedback: Feedback) {
+  try {
+    console.log('Opening assign dialog for feedback:', feedback)
+    selectedFeedback.value = feedback
+    resetAssignForm()
+    
+    // Load technicians if not loaded yet
+    if (technicians.value.length === 0) {
+      await loadTechnicians()
+    }
+    
+    showAssignDialog.value = true
+  } catch (error: any) {
+    console.error('Error opening assign dialog:', error)
+    ElMessage.error('Không thể mở dialog phân công')
+  }
+}
+
+async function loadTechnicians() {
+  loadingTechnicians.value = true
+  try {
+    console.log('Loading technicians...')
+    const response = await api.getTechnicians()
+    technicians.value = response.data || []
+    console.log('Loaded technicians:', technicians.value.length)
+  } catch (error: any) {
+    console.error('Error loading technicians:', error)
+    ElMessage.error('Không thể tải danh sách kỹ thuật viên')
+  } finally {
+    loadingTechnicians.value = false
+  }
+}
+
+async function saveAssignment() {
+  if (!assignFormRef.value || !selectedFeedback.value) return
+  
+  try {
+    console.log('Validating assignment form...')
+    await assignFormRef.value.validate()
+    assigning.value = true
+    
+    console.log('Assignment form data:', assignForm)
+    console.log('Selected feedback:', selectedFeedback.value.id)
+    
+    const result = await api.assignFeedback(selectedFeedback.value.id, {
+      assigned_to: Number(assignForm.assigned_to),
+      notes: assignForm.notes
+    })
+    
+    console.log('Assignment result:', result)
+    ElMessage.success('Phân công phản ánh thành công')
+    
+    showAssignDialog.value = false
+    loadFeedbacks() // Reload to show updated assignment
+  } catch (error: any) {
+    console.error('Assignment error:', error)
+    console.error('Error response:', error.response?.data)
+    
+    let errorMessage = 'Có lỗi xảy ra khi phân công'
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    } else if (error.response?.data?.errors) {
+      const firstError = Object.values(error.response.data.errors)[0]
+      errorMessage = Array.isArray(firstError) ? firstError[0] : firstError
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    ElMessage.error(errorMessage)
+  } finally {
+    assigning.value = false
+  }
+}
+
+function resetAssignForm() {
+  Object.assign(assignForm, {
+    assigned_to: '',
+    notes: ''
+  })
+  assignFormRef.value?.resetFields()
 }
 
 function handleSizeChange(size: number) {

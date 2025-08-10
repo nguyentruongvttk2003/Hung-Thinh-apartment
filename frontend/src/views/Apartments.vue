@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="apartments-page">
     <div class="page-header">
       <h2>Quản lý căn hộ</h2>
@@ -158,7 +157,6 @@
           </template>
         </el-dialog>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -166,7 +164,6 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import AppLayout from '@/components/Layout/AppLayout.vue'
 import api from '@/services/api'
 import type { Apartment } from '@/types'
 import { Plus } from '@element-plus/icons-vue'
@@ -236,16 +233,29 @@ const apartmentRules: FormRules = {
 async function loadApartments() {
   loading.value = true
   try {
+    console.log('Loading apartments with params:', {
+      page: currentPage.value,
+      per_page: pageSize.value,
+      ...filters
+    })
+    
     const params = {
       page: currentPage.value,
       per_page: pageSize.value,
       ...filters
     }
     const response = await api.getApartments(params)
-    apartments.value = response.data
-    total.value = response.total
-  } catch (error) {
-    ElMessage.error('Không thể tải danh sách căn hộ')
+    console.log('Apartments API response:', response)
+    console.log('Response type:', typeof response)
+    console.log('Response keys:', Object.keys(response))
+    
+    apartments.value = response.data || []
+    total.value = response.total || 0
+    console.log('Set apartments:', apartments.value.length, 'total:', total.value)
+  } catch (error: any) {
+    console.error('Apartments load error:', error)
+    console.error('Error response:', error.response?.data)
+    ElMessage.error('Không thể tải danh sách căn hộ: ' + (error.message || 'Unknown error'))
   } finally {
     loading.value = false
   }
@@ -336,21 +346,40 @@ async function saveApartment() {
   if (!apartmentFormRef.value) return
   
   try {
+    console.log('Validating apartment form...')
     await apartmentFormRef.value.validate()
     saving.value = true
     
+    console.log('Apartment form data:', apartmentForm)
+    
     if (editingApartment.value) {
+      console.log('Updating apartment:', editingApartment.value.id)
       await api.updateApartment(editingApartment.value.id, apartmentForm)
       ElMessage.success('Cập nhật căn hộ thành công')
     } else {
-      await api.createApartment(apartmentForm)
+      console.log('Creating new apartment...')
+      const result = await api.createApartment(apartmentForm)
+      console.log('Create apartment result:', result)
       ElMessage.success('Thêm căn hộ thành công')
     }
     
     showCreateDialog.value = false
     loadApartments()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || 'Có lỗi xảy ra')
+    console.error('Save apartment error:', error)
+    console.error('Error response:', error.response?.data)
+    
+    let errorMessage = 'Có lỗi xảy ra'
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    } else if (error.response?.data?.errors) {
+      const firstError = Object.values(error.response.data.errors)[0]
+      errorMessage = Array.isArray(firstError) ? firstError[0] : firstError
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    ElMessage.error(errorMessage)
   } finally {
     saving.value = false
   }

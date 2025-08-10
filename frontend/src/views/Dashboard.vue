@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="dashboard">
     <!-- Stats Cards -->
     <div class="stats-grid">
@@ -110,13 +109,11 @@
           </div>
         </el-card>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
-import AppLayout from '@/components/Layout/AppLayout.vue'
 import { useDashboardStore } from '@/stores/dashboard'
 import { House, User, Money, ChatDotRound, Refresh, Clock } from '@element-plus/icons-vue'
 

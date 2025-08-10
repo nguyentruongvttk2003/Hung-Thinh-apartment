@@ -63,6 +63,8 @@ export interface Feedback {
   priority: 'low' | 'medium' | 'high'
   created_by: number
   assigned_to?: number
+  assigned_technician?: User
+  assigned_at?: string
   created_at: string
   updated_at: string
 }

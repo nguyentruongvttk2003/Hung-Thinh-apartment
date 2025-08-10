@@ -99,6 +99,27 @@ Route::get('test-simple', function () {
     ]);
 });
 
+// Test endpoints for debugging
+Route::get('test-apartments', function () {
+    $apartments = \App\Models\Apartment::limit(5)->get();
+    return response()->json([
+        'success' => true,
+        'data' => $apartments,
+        'count' => $apartments->count(),
+        'total_apartments' => \App\Models\Apartment::count()
+    ]);
+});
+
+Route::get('test-feedbacks', function () {
+    $feedbacks = \App\Models\Feedback::limit(5)->get();
+    return response()->json([
+        'success' => true,
+        'data' => $feedbacks,
+        'count' => $feedbacks->count(),
+        'total_feedbacks' => \App\Models\Feedback::count()
+    ]);
+});
+
 Route::post('test-login', function (\Illuminate\Http\Request $request) {
     $email = $request->email;
     $password = $request->password;
@@ -218,6 +239,29 @@ Route::group(['middleware' => 'auth:api'], function () {
         ]);
     });
 
+    // Test authenticated endpoints
+    Route::get('test-auth-apartments', function() {
+        $apartments = \App\Models\Apartment::with(['owner'])->limit(3)->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'Authenticated apartments test',
+            'data' => $apartments,
+            'count' => $apartments->count(),
+            'user' => auth()->user()->name
+        ]);
+    });
+
+    Route::get('test-auth-feedbacks', function() {
+        $feedbacks = \App\Models\Feedback::with(['user', 'apartment'])->limit(3)->get();
+        return response()->json([
+            'success' => true,
+            'message' => 'Authenticated feedbacks test',
+            'data' => $feedbacks,
+            'count' => $feedbacks->count(),
+            'user' => auth()->user()->name
+        ]);
+    });
+
     // Apartments
     Route::apiResource('apartments', ApartmentController::class);
     Route::get('apartments/{apartment}/residents', [ApartmentController::class, 'residents']);
@@ -225,9 +269,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('apartments/{apartment}/residents/{resident}', [ApartmentController::class, 'removeResident']);
 
     // Users
-    Route::apiResource('users', UserController::class);
     Route::get('users/technicians', [UserController::class, 'technicians']);
     Route::get('users/accountants', [UserController::class, 'accountants']);
+    Route::apiResource('users', UserController::class);
 
     // Notifications
     Route::apiResource('notifications', NotificationController::class);

@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="payments-page">
     <div class="page-header">
       <h2>Quản lý thanh toán</h2>
@@ -52,13 +51,12 @@
         </div>
       </el-card>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import AppLayout from '@/components/Layout/AppLayout.vue'
+
 import api from '@/services/api'
 import type { Payment } from '@/types'
 
@@ -73,15 +71,27 @@ const total = ref(0)
 async function loadPayments() {
   loading.value = true
   try {
+    console.log('Loading payments with params:', {
+      page: currentPage.value,
+      per_page: pageSize.value
+    })
+    
     const params = {
       page: currentPage.value,
       per_page: pageSize.value
     }
     const response = await api.getPayments(params)
-    payments.value = response.data
-    total.value = response.total
-  } catch (error) {
-    ElMessage.error('Không thể tải danh sách thanh toán')
+    console.log('Payments API response:', response)
+    console.log('Response type:', typeof response)
+    console.log('Response keys:', Object.keys(response))
+    
+    payments.value = response.data || []
+    total.value = response.total || 0
+    console.log('Set payments:', payments.value.length, 'total:', total.value)
+  } catch (error: any) {
+    console.error('Payments load error:', error)
+    console.error('Error response:', error.response?.data)
+    ElMessage.error('Không thể tải danh sách thanh toán: ' + (error.message || 'Unknown error'))
   } finally {
     loading.value = false
   }

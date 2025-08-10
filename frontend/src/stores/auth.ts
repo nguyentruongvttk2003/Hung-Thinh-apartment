@@ -21,11 +21,11 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await api.login(email, password)
       console.log('Login response:', response)
       
-      // Backend returns direct object, not wrapped in ApiResponse
-      if (response.user && response.access_token) {
-        user.value = response.user
-        token.value = response.access_token
-        localStorage.setItem('auth_token', response.access_token)
+      // Backend returns wrapped in ApiResponse with 'data' field
+      if (response.success && response.data && response.data.user && response.data.token) {
+        user.value = response.data.user
+        token.value = response.data.token
+        localStorage.setItem('auth_token', response.data.token)
         console.log('Auth state updated:', {
           user: user.value,
           token: !!token.value,

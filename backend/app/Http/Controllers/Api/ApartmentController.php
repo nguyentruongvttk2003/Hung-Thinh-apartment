@@ -16,36 +16,67 @@ class ApartmentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Apartment::with(['owner', 'residents.user']);
+        \Log::info('ApartmentController index called', [
+            'params' => $request->all(),
+            'user' => auth()->user()?->id
+        ]);
 
-        // Filter by block
-        if ($request->has('block')) {
+        $query = Apartment::query();
+        
+        \Log::info('Initial apartment count', ['count' => $query->count()]);
+
+        // Filter by block - only if not empty
+        if ($request->has('block') && !empty($request->block)) {
             $query->where('block', $request->block);
+            \Log::info('Filtered by block', ['block' => $request->block, 'count' => $query->count()]);
         }
 
-        // Filter by floor
-        if ($request->has('floor')) {
+        // Filter by floor - only if not empty
+        if ($request->has('floor') && !empty($request->floor)) {
             $query->where('floor', $request->floor);
+            \Log::info('Filtered by floor', ['floor' => $request->floor, 'count' => $query->count()]);
         }
 
-        // Filter by status
-        if ($request->has('status')) {
+        // Filter by status - only if not empty
+        if ($request->has('status') && !empty($request->status)) {
             $query->where('status', $request->status);
+            \Log::info('Filtered by status', ['status' => $request->status, 'count' => $query->count()]);
         }
 
-        // Filter by type
-        if ($request->has('type')) {
+        // Filter by type - only if not empty
+        if ($request->has('type') && !empty($request->type)) {
             $query->where('type', $request->type);
+            \Log::info('Filtered by type', ['type' => $request->type, 'count' => $query->count()]);
         }
 
-        // Search by apartment number
-        if ($request->has('search')) {
+        // Search by apartment number - only if not empty
+        if ($request->has('search') && !empty($request->search)) {
             $query->where('apartment_number', 'like', '%' . $request->search . '%');
+            \Log::info('Filtered by search', ['search' => $request->search, 'count' => $query->count()]);
         }
+
+        \Log::info('Final query count before pagination', ['count' => $query->count()]);
+
+        // Add relationships
+        $query->with(['owner', 'residents.user']);
 
         $apartments = $query->paginate($request->get('per_page', 15));
 
-        return response()->json($apartments);
+        \Log::info('Paginated result', [
+            'items_count' => $apartments->count(),
+            'total' => $apartments->total(),
+            'current_page' => $apartments->currentPage()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $apartments->items(),
+            'current_page' => $apartments->currentPage(),
+            'last_page' => $apartments->lastPage(),
+            'per_page' => $apartments->perPage(),
+            'total' => $apartments->total(),
+            'message' => 'Apartments retrieved successfully'
+        ]);
     }
 
     /**
@@ -53,29 +84,76 @@ class ApartmentController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info('ApartmentController store called', [
+            'data' => $request->all(),
+            'user' => auth()->user()?->id
+        ]);
+
         $validator = Validator::make($request->all(), [
             'apartment_number' => 'required|string|unique:apartments',
             'block' => 'nullable|string',
             'floor' => 'required|integer|min:1',
-            'room_number' => 'required|integer|min:1',
             'area' => 'required|numeric|min:0',
-            'bedrooms' => 'required|integer|min:1',
-            'type' => 'required|in:studio,1BR,2BR,3BR,penthouse',
+            'type' => 'required|in:studio,1br,2br,3br,4br',
             'status' => 'required|in:occupied,vacant,maintenance,reserved',
             'owner_id' => 'nullable|exists:users,id',
             'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+            \Log::error('Apartment validation failed', ['errors' => $validator->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $validator->errors()
+            ], 400);
         }
 
-        $apartment = Apartment::create($validator->validated());
+        $data = $validator->validated();
+        
+        // Auto-generate room_number from apartment_number (extract number part)
+        $room_number = intval(preg_replace('/[^0-9]/', '', $data['apartment_number']));
+        $data['room_number'] = $room_number ?: 101;
+        
+        // Auto-generate bedrooms based on type
+        $bedroomMap = [
+            'studio' => 0,
+            '1br' => 1,
+            '2br' => 2,
+            '3br' => 3,
+            '4br' => 4
+        ];
+        $data['bedrooms'] = $bedroomMap[$data['type']] ?? 1;
+        
+        // Convert type to match database enum
+        $typeMap = [
+            'studio' => 'studio',
+            '1br' => '1BR',
+            '2br' => '2BR', 
+            '3br' => '3BR',
+            '4br' => 'penthouse'
+        ];
+        $data['type'] = $typeMap[$data['type']] ?? '1BR';
 
-        return response()->json([
-            'message' => 'Căn hộ đã được tạo thành công',
-            'apartment' => $apartment->load(['owner', 'residents.user'])
-        ], 201);
+        \Log::info('Creating apartment with processed data', $data);
+
+        try {
+            $apartment = Apartment::create($data);
+            
+            \Log::info('Apartment created successfully', ['id' => $apartment->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Căn hộ đã được tạo thành công',
+                'data' => $apartment->load(['owner', 'residents.user'])
+            ], 201);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create apartment', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể tạo căn hộ: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

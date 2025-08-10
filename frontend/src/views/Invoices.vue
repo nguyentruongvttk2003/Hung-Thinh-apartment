@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="invoices-page">
     <div class="page-header">
       <h2>Quản lý hóa đơn</h2>
@@ -58,13 +57,12 @@
         </div>
       </el-card>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import AppLayout from '@/components/Layout/AppLayout.vue'
+
 import api from '@/services/api'
 import type { Invoice } from '@/types'
 import { Plus } from '@element-plus/icons-vue'

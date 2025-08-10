@@ -2,7 +2,7 @@
 export const API_CONFIG = {
   // Base URL for the Laravel backend
   // Use your computer's local IP that the phone can access
-  BASE_URL: 'http://192.168.1.83:8000/api',
+  BASE_URL: 'http://192.168.1.90:8000/api',
   
   // Alternative URLs for different environments
   LOCALHOST_URL: 'http://127.0.0.1:8000/api',

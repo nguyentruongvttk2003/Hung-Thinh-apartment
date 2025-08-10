@@ -1,9 +1,8 @@
 <template>
-  <AppLayout>
     <div class="notifications-page">
     <div class="page-header">
       <h2>Quản lý thông báo</h2>
-      <el-button type="primary" @click="showCreateDialog = true">
+      <el-button type="primary" @click="resetNotificationForm(); showCreateDialog = true">
         <el-icon><Plus /></el-icon>
         Tạo thông báo
       </el-button>
@@ -110,14 +109,13 @@
         </template>
       </el-dialog>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import AppLayout from '@/components/Layout/AppLayout.vue'
+
 import api from '@/services/api'
 import type { Notification } from '@/types'
 import { Plus } from '@element-plus/icons-vue'
@@ -167,15 +165,27 @@ const notificationRules: FormRules = {
 async function loadNotifications() {
   loading.value = true
   try {
+    console.log('Loading notifications with params:', {
+      page: currentPage.value,
+      per_page: pageSize.value
+    })
+    
     const params = {
       page: currentPage.value,
       per_page: pageSize.value
     }
     const response = await api.getNotifications(params)
-    notifications.value = response.data
-    total.value = response.total
-  } catch (error) {
-    ElMessage.error('Không thể tải danh sách thông báo')
+    console.log('Notifications API response:', response)
+    console.log('Response type:', typeof response)
+    console.log('Response keys:', Object.keys(response))
+    
+    notifications.value = response.data || []
+    total.value = response.total || 0
+    console.log('Set notifications:', notifications.value.length, 'total:', total.value)
+  } catch (error: any) {
+    console.error('Notifications load error:', error)
+    console.error('Error response:', error.response?.data)
+    ElMessage.error('Không thể tải danh sách thông báo: ' + (error.message || 'Unknown error'))
   } finally {
     loading.value = false
   }
@@ -261,16 +271,34 @@ async function saveNotification() {
   if (!notificationFormRef.value) return
   
   try {
+    console.log('Validating notification form...')
     await notificationFormRef.value.validate()
     saving.value = true
     
-    await api.createNotification(notificationForm)
+    console.log('Notification form data:', notificationForm)
+    
+    const result = await api.createNotification(notificationForm)
+    console.log('Create notification result:', result)
     ElMessage.success('Tạo thông báo thành công')
     
     showCreateDialog.value = false
+    resetNotificationForm()
     loadNotifications()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || 'Có lỗi xảy ra')
+    console.error('Save notification error:', error)
+    console.error('Error response:', error.response?.data)
+    
+    let errorMessage = 'Có lỗi xảy ra'
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    } else if (error.response?.data?.errors) {
+      const firstError = Object.values(error.response.data.errors)[0]
+      errorMessage = Array.isArray(firstError) ? firstError[0] : firstError
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    ElMessage.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -285,6 +313,16 @@ function handleSizeChange(size: number) {
 function handleCurrentChange(page: number) {
   currentPage.value = page
   loadNotifications()
+}
+
+function resetNotificationForm() {
+  Object.assign(notificationForm, {
+    title: '',
+    content: '',
+    type: 'general',
+    priority: 'medium'
+  })
+  notificationFormRef.value?.resetFields()
 }
 
 onMounted(() => {

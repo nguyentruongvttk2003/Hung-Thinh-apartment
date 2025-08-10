@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class NotificationController extends Controller
 {
@@ -13,45 +14,55 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        try {
-            $user = auth()->user();
-            $page = $request->get('page', 1);
-            $limit = $request->get('limit', 10);
-            
-            $notifications = Notification::where(function($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->orWhere('user_id', null); // Global notifications
-            })
-            ->with(['recipients' => function($query) use ($user) {
-                $query->where('user_id', $user->id);
-            }])
-            ->latest()
-            ->paginate($limit, ['*'], 'page', $page);
+        \Log::info('NotificationController index called', [
+            'params' => $request->all(),
+            'user' => auth()->user()?->id
+        ]);
 
-            // Add isRead flag to each notification
-            $notificationsData = $notifications->map(function ($notification) {
-                return [
-                    'id' => $notification->id,
-                    'title' => $notification->title,
-                    'content' => $notification->content,
-                    'type' => $notification->type,
-                    'isRead' => $notification->recipients->isNotEmpty(),
-                    'createdAt' => $notification->created_at->toISOString(),
-                    'updatedAt' => $notification->updated_at->toISOString(),
-                ];
-            });
+        try {
+            $query = Notification::query();
+            
+            \Log::info('Initial notification count', ['count' => $query->count()]);
+            
+            // Filter by type if provided - only if not empty
+            if ($request->has('type') && !empty($request->type)) {
+                $query->where('type', $request->type);
+                \Log::info('Filtered by type', ['type' => $request->type, 'count' => $query->count()]);
+            }
+
+            // Filter by status if provided - only if not empty
+            if ($request->has('status') && !empty($request->status)) {
+                $query->where('status', $request->status);
+                \Log::info('Filtered by status', ['status' => $request->status, 'count' => $query->count()]);
+            }
+
+            // Search by title if provided - only if not empty
+            if ($request->has('search') && !empty($request->search)) {
+                $query->where('title', 'like', '%' . $request->search . '%');
+                \Log::info('Filtered by search', ['search' => $request->search, 'count' => $query->count()]);
+            }
+
+            \Log::info('Final query count before pagination', ['count' => $query->count()]);
+
+            $notifications = $query->latest()->paginate($request->get('per_page', 15));
+
+            \Log::info('Paginated result', [
+                'items_count' => $notifications->count(),
+                'total' => $notifications->total(),
+                'current_page' => $notifications->currentPage()
+            ]);
 
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'data' => $notificationsData->values(),
-                    'currentPage' => $notifications->currentPage(),
-                    'totalPages' => $notifications->lastPage(),
-                    'total' => $notifications->total(),
-                ],
+                'data' => $notifications->items(),
+                'current_page' => $notifications->currentPage(),
+                'last_page' => $notifications->lastPage(),
+                'per_page' => $notifications->perPage(),
+                'total' => $notifications->total(),
                 'message' => 'Notifications retrieved successfully'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Failed to load notifications', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Lỗi khi tải thông báo: ' . $e->getMessage()
@@ -64,21 +75,61 @@ class NotificationController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        \Log::info('NotificationController store called', [
+            'data' => $request->all(),
+            'user' => auth()->user()?->id
+        ]);
+
+        $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'message' => 'required|string',
-            'type' => 'required|string',
+            'content' => 'required|string',
+            'type' => 'required|in:general,maintenance,payment,event,emergency',
+            'priority' => 'required|in:low,medium,high',
         ]);
 
-        $notification = Notification::create([
-            'title' => $request->title,
-            'message' => $request->message,
-            'type' => $request->type,
-            'user_id' => $request->user_id,
-            'status' => 'active',
-        ]);
+        if ($validator->fails()) {
+            \Log::error('Notification validation failed', ['errors' => $validator->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        return response()->json($notification, 201);
+        // Map frontend priority values to database values
+        $priorityMap = [
+            'low' => 'low',
+            'medium' => 'normal', 
+            'high' => 'high'
+        ];
+        $priority = $priorityMap[$request->priority] ?? 'normal';
+
+        \Log::info('Creating notification with data', $validator->validated());
+
+        try {
+            $notification = Notification::create([
+                'title' => $request->title,
+                'content' => $request->content,
+                'type' => $request->type,
+                'priority' => $priority,
+                'created_by' => auth()->user()->id,
+                'status' => 'draft',
+            ]);
+
+            \Log::info('Notification created successfully', ['id' => $notification->id]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $notification,
+                'message' => 'Thông báo đã được tạo thành công'
+            ], 201);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể tạo thông báo: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

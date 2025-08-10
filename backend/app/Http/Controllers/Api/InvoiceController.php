@@ -11,36 +11,35 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = auth()->user();
-            $page = $request->get('page', 1);
-            $limit = $request->get('limit', 10);
+            $query = Invoice::with(['apartment']);
             
-            $invoices = Invoice::where('apartment_id', $user->apartment_id)
-                ->latest()
-                ->paginate($limit, ['*'], 'page', $page);
+            // Filter by apartment if provided
+            if ($request->has('apartment_id')) {
+                $query->where('apartment_id', $request->apartment_id);
+            }
 
-            // Format invoices for mobile app
-            $invoicesData = $invoices->map(function ($invoice) {
-                return [
-                    'id' => $invoice->id,
-                    'title' => $invoice->description,
-                    'amount' => $invoice->total_amount,
-                    'status' => $this->mapInvoiceStatus($invoice->status),
-                    'dueDate' => $invoice->due_date,
-                    'description' => $invoice->description,
-                    'createdAt' => $invoice->created_at->toISOString(),
-                    'updatedAt' => $invoice->updated_at->toISOString(),
-                ];
-            });
+            // Filter by status if provided
+            if ($request->has('status')) {
+                $query->where('status', $request->status);
+            }
+
+            // Search by month/year if provided
+            if ($request->has('month')) {
+                $query->where('month', $request->month);
+            }
+            if ($request->has('year')) {
+                $query->where('year', $request->year);
+            }
+
+            $invoices = $query->latest()->paginate($request->get('per_page', 15));
 
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'data' => $invoicesData->values(),
-                    'currentPage' => $invoices->currentPage(),
-                    'totalPages' => $invoices->lastPage(),
-                    'total' => $invoices->total(),
-                ],
+                'data' => $invoices->items(),
+                'current_page' => $invoices->currentPage(),
+                'last_page' => $invoices->lastPage(),
+                'per_page' => $invoices->perPage(),
+                'total' => $invoices->total(),
                 'message' => 'Invoices retrieved successfully'
             ]);
         } catch (\Exception $e) {

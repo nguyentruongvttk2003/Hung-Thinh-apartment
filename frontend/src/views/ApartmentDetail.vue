@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="apartment-detail-page">
     <div class="page-header">
       <el-button @click="$router.go(-1)" icon="ArrowLeft">Quay lại</el-button>
@@ -271,7 +270,6 @@
       </template>
     </el-dialog>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -279,7 +277,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, User, Document, Money, Warning, Clock, Bell, Tools } from '@element-plus/icons-vue'
-import AppLayout from '@/components/Layout/AppLayout.vue'
+
 import type { Apartment, Resident } from '@/types'
 
 const route = useRoute()

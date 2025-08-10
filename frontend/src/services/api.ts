@@ -33,21 +33,31 @@ class ApiService {
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('auth_token')
+        console.log('Request interceptor - token:', token ? 'exists' : 'missing')
+        console.log('Request URL:', config.url)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
         return config
       },
       (error) => {
+        console.error('Request interceptor error:', error)
         return Promise.reject(error)
       }
     )
 
     // Response interceptor to handle errors
     this.api.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log('Response interceptor - success:', response.config.url, response.status)
+        return response
+      },
       (error) => {
+        console.error('Response interceptor - error:', error.config?.url, error.response?.status)
+        console.error('Error data:', error.response?.data)
+        
         if (error.response?.status === 401) {
+          console.log('Unauthorized - removing token and redirecting')
           localStorage.removeItem('auth_token')
           window.location.href = '/login'
         }
@@ -57,7 +67,7 @@ class ApiService {
   }
 
   // Auth endpoints
-  async login(email: string, password: string): Promise<{ access_token: string; token_type: string; expires_in: number; user: User }> {
+  async login(email: string, password: string): Promise<{ success: boolean; data: { token: string; token_type: string; expires_in: number; user: User } }> {
     console.log('API login called with:', { email })
     const response = await this.api.post('/auth/login', { email, password })
     console.log('API login response:', response)
@@ -98,8 +108,22 @@ class ApiService {
 
   // Apartment endpoints
   async getApartments(params?: any): Promise<PaginatedResponse<Apartment>> {
-    const response = await this.api.get('/apartments', { params })
-    return response.data
+    console.log('API getApartments called with params:', params)
+    console.log('API baseURL:', this.api.defaults.baseURL)
+    console.log('API headers:', this.api.defaults.headers)
+    
+    try {
+      const response = await this.api.get('/apartments', { params })
+      console.log('Raw axios response:', response)
+      console.log('Response status:', response.status)
+      console.log('Response data:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('API getApartments error:', error)
+      console.error('Error status:', error.response?.status)
+      console.error('Error data:', error.response?.data)
+      throw error
+    }
   }
 
   async getApartment(id: number): Promise<ApiResponse<Apartment>> {
@@ -108,8 +132,17 @@ class ApiService {
   }
 
   async createApartment(apartmentData: Partial<Apartment>): Promise<ApiResponse<Apartment>> {
-    const response = await this.api.post('/apartments', apartmentData)
-    return response.data
+    console.log('API createApartment called with data:', apartmentData)
+    
+    try {
+      const response = await this.api.post('/apartments', apartmentData)
+      console.log('Create apartment response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API createApartment error:', error)
+      console.error('Create apartment error response:', error.response?.data)
+      throw error
+    }
   }
 
   async updateApartment(id: number, apartmentData: Partial<Apartment>): Promise<ApiResponse<Apartment>> {
@@ -134,8 +167,22 @@ class ApiService {
   }
 
   async createUser(userData: Partial<User> & { password: string }): Promise<ApiResponse<User>> {
-    const response = await this.api.post('/users', userData)
-    return response.data
+    console.log('API createUser called with data:', userData)
+    
+    try {
+      const response = await this.api.post('/users', userData)
+      console.log('Create user response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API createUser error:', error)
+      console.error('Create user error response:', error.response?.data)
+      console.error('Error status:', error.response?.status)
+      console.error('Error headers:', error.response?.headers)
+      if (error.response?.data?.errors) {
+        console.error('Validation errors detail:', error.response.data.errors)
+      }
+      throw error
+    }
   }
 
   async updateUser(id: number, userData: Partial<User>): Promise<ApiResponse<User>> {
@@ -150,13 +197,40 @@ class ApiService {
 
   // Notification endpoints
   async getNotifications(params?: any): Promise<PaginatedResponse<Notification>> {
-    const response = await this.api.get('/notifications', { params })
-    return response.data
+    console.log('API getNotifications called with params:', params)
+    console.log('API baseURL:', this.api.defaults.baseURL)
+    console.log('API headers:', this.api.defaults.headers)
+    
+    try {
+      const response = await this.api.get('/notifications', { params })
+      console.log('Raw notifications axios response:', response)
+      console.log('Notifications response status:', response.status)
+      console.log('Notifications response data:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('API getNotifications error:', error)
+      console.error('Notifications error status:', error.response?.status)
+      console.error('Notifications error data:', error.response?.data)
+      throw error
+    }
   }
 
   async createNotification(notificationData: Partial<Notification>): Promise<ApiResponse<Notification>> {
-    const response = await this.api.post('/notifications', notificationData)
-    return response.data
+    console.log('API createNotification called with data:', notificationData)
+    
+    try {
+      const response = await this.api.post('/notifications', notificationData)
+      console.log('Create notification response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API createNotification error:', error)
+      console.error('Create notification error response:', error.response?.data)
+      console.error('Error status:', error.response?.status)
+      if (error.response?.data?.errors) {
+        console.error('Validation errors detail:', error.response.data.errors)
+      }
+      throw error
+    }
   }
 
   async sendNotification(id: number): Promise<ApiResponse<Notification>> {
@@ -166,8 +240,19 @@ class ApiService {
 
   // Feedback endpoints
   async getFeedbacks(params?: any): Promise<PaginatedResponse<Feedback>> {
-    const response = await this.api.get('/feedbacks', { params })
-    return response.data
+    console.log('API getFeedbacks called with params:', params)
+    
+    try {
+      const response = await this.api.get('/feedbacks', { params })
+      console.log('getFeedbacks raw response:', response)
+      console.log('getFeedbacks response data:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('API getFeedbacks error:', error)
+      console.error('Error status:', error.response?.status)
+      console.error('Error data:', error.response?.data)
+      throw error
+    }
   }
 
   async createFeedback(feedbackData: Partial<Feedback>): Promise<ApiResponse<Feedback>> {
@@ -175,9 +260,31 @@ class ApiService {
     return response.data
   }
 
-  async assignFeedback(id: number, assignedTo: number): Promise<ApiResponse<Feedback>> {
-    const response = await this.api.post(`/feedbacks/${id}/assign`, { assigned_to: assignedTo })
-    return response.data
+  async assignFeedback(id: number, assignData: { assigned_to: number; notes?: string }): Promise<ApiResponse<Feedback>> {
+    console.log('API assignFeedback called', { id, assignData })
+    
+    try {
+      const response = await this.api.post(`/feedbacks/${id}/assign`, assignData)
+      console.log('Assign feedback response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API assignFeedback error:', error)
+      console.error('Assign feedback error response:', error.response?.data)
+      throw error
+    }
+  }
+
+  async getTechnicians(): Promise<ApiResponse<User[]>> {
+    console.log('API getTechnicians called')
+    
+    try {
+      const response = await this.api.get('/users/technicians')
+      console.log('Get technicians response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API getTechnicians error:', error)
+      throw error
+    }
   }
 
   // Invoice endpoints
@@ -198,8 +305,22 @@ class ApiService {
 
   // Payment endpoints
   async getPayments(params?: any): Promise<PaginatedResponse<Payment>> {
-    const response = await this.api.get('/payments', { params })
-    return response.data
+    console.log('API getPayments called with params:', params)
+    console.log('API baseURL:', this.api.defaults.baseURL)
+    console.log('API headers:', this.api.defaults.headers)
+    
+    try {
+      const response = await this.api.get('/payments', { params })
+      console.log('Raw payments axios response:', response)
+      console.log('Payments response status:', response.status)
+      console.log('Payments response data:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('API getPayments error:', error)
+      console.error('Payments error status:', error.response?.status)
+      console.error('Payments error data:', error.response?.data)
+      throw error
+    }
   }
 
   async createPayment(paymentData: Partial<Payment>): Promise<ApiResponse<Payment>> {

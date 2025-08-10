@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="maintenances-page">
     <div class="page-header">
       <h1>Quản lý Bảo trì</h1>
@@ -147,14 +146,13 @@
       </template>
           </el-dialog>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
-import AppLayout from '@/components/Layout/AppLayout.vue'
+
 import type { Maintenance } from '@/types'
 
 // Reactive data

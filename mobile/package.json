@@ -4,9 +4,14 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
+    "dev": "expo start --dev-client",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "tunnel": "expo start --tunnel",
+    "lan": "expo start --lan",
+    "localhost": "expo start --localhost",
+    "clear": "expo start --clear"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",

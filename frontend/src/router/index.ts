@@ -1,13 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AppLayout from '@/components/Layout/AppLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    {
-      path: '/',
-      redirect: '/dashboard'
-    },
     {
       path: '/login',
       name: 'Login',
@@ -15,82 +12,93 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
-      path: '/dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/Dashboard.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/apartments',
-      name: 'Apartments',
-      component: () => import('@/views/Apartments.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/apartments/:id',
-      name: 'ApartmentDetail',
-      component: () => import('@/views/ApartmentDetail.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/users',
-      name: 'Users',
-      component: () => import('@/views/Users.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/notifications',
-      name: 'Notifications',
-      component: () => import('@/views/Notifications.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/feedbacks',
-      name: 'Feedbacks',
-      component: () => import('@/views/Feedbacks.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/invoices',
-      name: 'Invoices',
-      component: () => import('@/views/Invoices.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/payments',
-      name: 'Payments',
-      component: () => import('@/views/Payments.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/devices',
-      name: 'Devices',
-      component: () => import('@/views/Devices.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/maintenances',
-      name: 'Maintenances',
-      component: () => import('@/views/Maintenances.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/events',
-      name: 'Events',
-      component: () => import('@/views/Events.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/votes',
-      name: 'Votes',
-      component: () => import('@/views/Votes.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/profile',
-      name: 'Profile',
-      component: () => import('@/views/Profile.vue'),
-      meta: { requiresAuth: true }
+      path: '/',
+      component: AppLayout,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          redirect: '/dashboard'
+        },
+        {
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: () => import('@/views/Dashboard.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'apartments',
+          name: 'Apartments',
+          component: () => import('@/views/Apartments.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'apartments/:id',
+          name: 'ApartmentDetail',
+          component: () => import('@/views/ApartmentDetail.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'users',
+          name: 'Users',
+          component: () => import('@/views/Users.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'notifications',
+          name: 'Notifications',
+          component: () => import('@/views/Notifications.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'feedbacks',
+          name: 'Feedbacks',
+          component: () => import('@/views/Feedbacks.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'invoices',
+          name: 'Invoices',
+          component: () => import('@/views/Invoices.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'payments',
+          name: 'Payments',
+          component: () => import('@/views/Payments.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'devices',
+          name: 'Devices',
+          component: () => import('@/views/Devices.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'maintenances',
+          name: 'Maintenances',
+          component: () => import('@/views/Maintenances.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'events',
+          name: 'Events',
+          component: () => import('@/views/Events.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'votes',
+          name: 'Votes',
+          component: () => import('@/views/Votes.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('@/views/Profile.vue'),
+          meta: { requiresAuth: true }
+        }
+      ]
     },
     {
       path: '/:pathMatch(.*)*',
