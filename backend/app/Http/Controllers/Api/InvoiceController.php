@@ -11,7 +11,7 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Invoice::with(['apartment']);
+            $query = Invoice::with(['apartment', 'creator']);
             
             // Filter by apartment if provided
             if ($request->has('apartment_id')) {
@@ -24,11 +24,10 @@ class InvoiceController extends Controller
             }
 
             // Search by month/year if provided
-            if ($request->has('month')) {
-                $query->where('month', $request->month);
-            }
-            if ($request->has('year')) {
-                $query->where('year', $request->year);
+            if ($request->has('month') && $request->has('year')) {
+                $billingStart = now()->createFromDate($request->year, $request->month, 1);
+                $billingEnd = $billingStart->copy()->endOfMonth();
+                $query->whereBetween('billing_period_start', [$billingStart, $billingEnd]);
             }
 
             $invoices = $query->latest()->paginate($request->get('per_page', 15));
@@ -68,20 +67,48 @@ class InvoiceController extends Controller
     {
         $request->validate([
             'apartment_id' => 'required|exists:apartments,id',
-            'description' => 'required|string',
+            'month' => 'required|integer|min:1|max:12',
+            'year' => 'required|integer|min:2020',
+            'management_fee' => 'required|numeric|min:0',
+            'electricity_fee' => 'required|numeric|min:0',
+            'water_fee' => 'required|numeric|min:0',
+            'parking_fee' => 'required|numeric|min:0',
+            'other_fees' => 'nullable|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
+            'due_date' => 'required|date',
+            'notes' => 'nullable|string',
         ]);
 
+        // Generate unique invoice number
+        $invoiceNumber = 'INV-' . date('Y') . '-' . str_pad(Invoice::count() + 1, 6, '0', STR_PAD_LEFT);
+
+        // Calculate billing period based on month and year
+        $billingStart = now()->createFromDate($request->year, $request->month, 1);
+        $billingEnd = $billingStart->copy()->endOfMonth();
+
         $invoice = Invoice::create([
+            'invoice_number' => $invoiceNumber,
             'apartment_id' => $request->apartment_id,
-            'description' => $request->description,
+            'billing_period_start' => $billingStart,
+            'billing_period_end' => $billingEnd,
+            'due_date' => $request->due_date,
+            'management_fee' => $request->management_fee,
+            'electricity_fee' => $request->electricity_fee,
+            'water_fee' => $request->water_fee,
+            'parking_fee' => $request->parking_fee,
+            'other_fees' => $request->other_fees ?? 0,
             'total_amount' => $request->total_amount,
             'paid_amount' => 0,
             'status' => 'pending',
-            'due_date' => $request->due_date ?? now()->addDays(30),
+            'notes' => $request->notes,
+            'created_by' => auth()->id(),
         ]);
 
-        return response()->json($invoice, 201);
+        return response()->json([
+            'success' => true,
+            'data' => $invoice->load('apartment'),
+            'message' => 'Hóa đơn đã được tạo thành công'
+        ], 201);
     }
 
     public function show($id)
@@ -92,16 +119,56 @@ class InvoiceController extends Controller
 
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'apartment_id' => 'required|exists:apartments,id',
+            'month' => 'required|integer|min:1|max:12',
+            'year' => 'required|integer|min:2020',
+            'management_fee' => 'required|numeric|min:0',
+            'electricity_fee' => 'required|numeric|min:0',
+            'water_fee' => 'required|numeric|min:0',
+            'parking_fee' => 'required|numeric|min:0',
+            'other_fees' => 'nullable|numeric|min:0',
+            'total_amount' => 'required|numeric|min:0',
+            'due_date' => 'required|date',
+            'notes' => 'nullable|string',
+        ]);
+
         $invoice = Invoice::findOrFail($id);
-        $invoice->update($request->all());
-        return response()->json($invoice);
+
+        // Calculate billing period based on month and year
+        $billingStart = now()->createFromDate($request->year, $request->month, 1);
+        $billingEnd = $billingStart->copy()->endOfMonth();
+
+        $invoice->update([
+            'apartment_id' => $request->apartment_id,
+            'billing_period_start' => $billingStart,
+            'billing_period_end' => $billingEnd,
+            'due_date' => $request->due_date,
+            'management_fee' => $request->management_fee,
+            'electricity_fee' => $request->electricity_fee,
+            'water_fee' => $request->water_fee,
+            'parking_fee' => $request->parking_fee,
+            'other_fees' => $request->other_fees ?? 0,
+            'total_amount' => $request->total_amount,
+            'notes' => $request->notes,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $invoice->load('apartment'),
+            'message' => 'Hóa đơn đã được cập nhật thành công'
+        ]);
     }
 
     public function destroy($id)
     {
         $invoice = Invoice::findOrFail($id);
         $invoice->delete();
-        return response()->json(['message' => 'Invoice deleted successfully']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Hóa đơn đã được xóa thành công'
+        ]);
     }
 
     public function byApartment($apartmentId)

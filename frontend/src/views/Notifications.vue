@@ -258,10 +258,14 @@ async function deleteNotification(notification: Notification) {
       }
     )
     
+    // Actually delete the notification via API
+    await api.deleteNotification(notification.id)
+    
     ElMessage.success('Xóa thông báo thành công')
     loadNotifications()
   } catch (error) {
     if (error !== 'cancel') {
+      console.error('Delete notification error:', error)
       ElMessage.error('Không thể xóa thông báo')
     }
   }

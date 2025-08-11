@@ -122,6 +122,86 @@
           </el-button>
         </template>
       </el-dialog>
+
+      <!-- View Feedback Dialog -->
+      <el-dialog
+        v-model="showViewDialog"
+        title="Chi tiết phản ánh"
+        width="700px"
+      >
+        <div v-if="viewingFeedback" class="feedback-detail">
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <div class="detail-item">
+                <label>Tiêu đề:</label>
+                <p>{{ viewingFeedback.title }}</p>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <label>Loại:</label>
+                <el-tag :type="getTypeTagType(viewingFeedback.type)">
+                  {{ getTypeLabel(viewingFeedback.type) }}
+                </el-tag>
+              </div>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <div class="detail-item">
+                <label>Trạng thái:</label>
+                <el-tag :type="getStatusTagType(viewingFeedback.status)">
+                  {{ getStatusLabel(viewingFeedback.status) }}
+                </el-tag>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <label>Ưu tiên:</label>
+                <el-tag :type="getPriorityTagType(viewingFeedback.priority)">
+                  {{ getPriorityLabel(viewingFeedback.priority) }}
+                </el-tag>
+              </div>
+            </el-col>
+          </el-row>
+
+          <div class="detail-item">
+            <label>Mô tả:</label>
+            <p class="description">{{ viewingFeedback.description || 'Không có mô tả' }}</p>
+          </div>
+
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <div class="detail-item">
+                <label>Ngày tạo:</label>
+                <p>{{ formatDate(viewingFeedback.created_at) }}</p>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <label>Người tạo:</label>
+                <p>{{ viewingFeedback.created_by || 'N/A' }}</p>
+              </div>
+            </el-col>
+          </el-row>
+
+          <div v-if="viewingFeedback.assigned_technician" class="detail-item">
+            <label>Người phụ trách:</label>
+            <div class="assigned-info">
+              <el-tag type="success">{{ viewingFeedback.assigned_technician.name }}</el-tag>
+              <p class="assigned-date">Phân công lúc: {{ viewingFeedback.assigned_at ? formatDate(viewingFeedback.assigned_at) : 'N/A' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <el-button @click="showViewDialog = false">Đóng</el-button>
+          <el-button v-if="!viewingFeedback?.assigned_technician" type="primary" @click="assignFeedbackFromView">
+            Phân công
+          </el-button>
+        </template>
+      </el-dialog>
     </div>
 </template>
 
@@ -147,6 +227,10 @@ const assigning = ref(false)
 const technicians = ref<User[]>([])
 const selectedFeedback = ref<Feedback | null>(null)
 const assignFormRef = ref<FormInstance>()
+
+// View data
+const showViewDialog = ref(false)
+const viewingFeedback = ref<Feedback | null>(null)
 
 // Assignment form
 const assignForm = reactive({
@@ -254,7 +338,9 @@ function formatDate(dateString: string): string {
 }
 
 function viewFeedback(feedback: Feedback) {
-  ElMessage.info(`Xem phản ánh: ${feedback.title}`)
+  console.log('Viewing feedback:', feedback)
+  viewingFeedback.value = feedback
+  showViewDialog.value = true
 }
 
 async function assignFeedback(feedback: Feedback) {
@@ -331,6 +417,13 @@ async function saveAssignment() {
   }
 }
 
+function assignFeedbackFromView() {
+  if (viewingFeedback.value) {
+    showViewDialog.value = false
+    assignFeedback(viewingFeedback.value)
+  }
+}
+
 function resetAssignForm() {
   Object.assign(assignForm, {
     assigned_to: '',
@@ -376,5 +469,41 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+}
+
+.feedback-detail .detail-item {
+  margin-bottom: 16px;
+}
+
+.feedback-detail .detail-item label {
+  font-weight: 600;
+  color: #606266;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.feedback-detail .detail-item p {
+  margin: 0;
+  color: #303133;
+}
+
+.feedback-detail .description {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #e0e6ed;
+  white-space: pre-wrap;
+}
+
+.feedback-detail .assigned-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feedback-detail .assigned-date {
+  font-size: 12px;
+  color: #909399;
+  margin: 0;
 }
 </style> 

@@ -293,6 +293,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('invoices/bulk-create', [InvoiceController::class, 'bulkCreate']);
 
     // Payments
+    Route::get('payments/stats', [PaymentController::class, 'stats']);
     Route::apiResource('payments', PaymentController::class);
     Route::post('payments/{payment}/process', [PaymentController::class, 'process']);
     Route::get('payments/invoice/{invoice}', [PaymentController::class, 'byInvoice']);

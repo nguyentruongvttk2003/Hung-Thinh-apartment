@@ -104,9 +104,9 @@
         </el-form-item>
         <el-form-item label="Loại bảo trì" prop="type">
           <el-select v-model="maintenanceForm.type" placeholder="Chọn loại bảo trì">
-            <el-option label="Bảo trì định kỳ" value="scheduled" />
-            <el-option label="Sửa chữa" value="repair" />
-            <el-option label="Kiểm tra" value="inspection" />
+            <el-option label="Bảo trì định kỳ" value="preventive" />
+            <el-option label="Bảo trì sửa chữa" value="corrective" />
+            <el-option label="Bảo trì khẩn cấp" value="emergency" />
           </el-select>
         </el-form-item>
         <el-form-item label="Độ ưu tiên" prop="priority">
@@ -144,8 +144,87 @@
         <el-button @click="showCreateDialog = false">Hủy</el-button>
         <el-button type="primary" @click="saveMaintenance">Lưu</el-button>
       </template>
-          </el-dialog>
-    </div>
+    </el-dialog>
+
+    <!-- View Details Dialog -->
+    <el-dialog
+      v-model="showViewDialog"
+      title="Chi tiết yêu cầu bảo trì"
+      width="700px"
+    >
+      <div v-if="viewingMaintenance" class="maintenance-details">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Tiêu đề:</label>
+              <span>{{ viewingMaintenance.title }}</span>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Thiết bị:</label>
+              <span>{{ viewingMaintenance.device_name || 'N/A' }}</span>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Loại bảo trì:</label>
+              <span>{{ getTypeLabel(viewingMaintenance.type) }}</span>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Độ ưu tiên:</label>
+              <el-tag v-if="viewingMaintenance.priority" :type="getPriorityTag(viewingMaintenance.priority)">
+                {{ getPriorityLabel(viewingMaintenance.priority) }}
+              </el-tag>
+              <span v-else>Chưa định</span>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Trạng thái:</label>
+              <el-tag :type="getStatusTag(viewingMaintenance.status)">
+                {{ getStatusLabel(viewingMaintenance.status) }}
+              </el-tag>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Người phụ trách:</label>
+              <span>{{ viewingMaintenance.technician_name || viewingMaintenance.assigned_to || 'Chưa phân công' }}</span>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Ngày tạo:</label>
+              <span>{{ formatDate(viewingMaintenance.created_at) }}</span>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Ngày dự kiến:</label>
+              <span>{{ formatDate(viewingMaintenance.scheduled_date) }}</span>
+            </div>
+          </el-col>
+        </el-row>
+        <div class="detail-item full-width">
+          <label>Mô tả:</label>
+          <p>{{ viewingMaintenance.description || 'Không có mô tả' }}</p>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showViewDialog = false">Đóng</el-button>
+        <el-button type="primary" @click="editMaintenanceFromView">Chỉnh sửa</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -154,6 +233,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
 
 import type { Maintenance } from '@/types'
+import api from '@/services/api'
 
 // Reactive data
 const loading = ref(false)
@@ -165,7 +245,9 @@ const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
 const showCreateDialog = ref(false)
+const showViewDialog = ref(false)
 const editingMaintenance = ref<Maintenance | null>(null)
+const viewingMaintenance = ref<Maintenance | null>(null)
 const maintenanceFormRef = ref()
 
 // Form data
@@ -253,42 +335,50 @@ const getStatusTag = (status: string): 'primary' | 'success' | 'warning' | 'info
 }
 
 const fetchMaintenances = async () => {
+  console.log('fetchMaintenances called')
   loading.value = true
   try {
-    // TODO: Implement API call
-    // const response = await api.getMaintenances({ page: currentPage.value, per_page: pageSize.value })
-    // maintenances.value = response.data.data
-    // total.value = response.data.total
+    const params = { 
+      page: currentPage.value, 
+      per_page: pageSize.value,
+      search: searchQuery.value,
+      status: statusFilter.value,
+      priority: priorityFilter.value
+    }
+    console.log('Fetching maintenances with params:', params)
     
-    // Mock data for now
-    maintenances.value = [
-      {
-        id: 1,
-        title: 'Bảo trì thang máy A',
-        device_id: 1,
-        device_name: 'Thang máy A',
-        type: 'preventive' as const,
-        priority: 'medium' as const,
-        status: 'in_progress' as const,
-        assigned_to: 'Kỹ thuật viên A',
-        description: 'Bảo trì định kỳ thang máy',
-        scheduled_date: '2024-01-20 09:00:00',
-        completed_date: undefined,
-        created_at: '2024-01-15',
-        updated_at: '2024-01-15'
-      }
-    ]
-    total.value = maintenances.value.length
+    const response = await api.getMaintenances(params)
+    console.log('Fetch maintenances response:', response)
+    
+    maintenances.value = response.data
+    total.value = response.total
+    
+    console.log('Updated maintenances:', maintenances.value.length, 'items')
   } catch (error) {
     ElMessage.error('Lỗi khi tải danh sách bảo trì')
+    console.error('Fetch maintenances error:', error)
   } finally {
     loading.value = false
   }
 }
 
-const viewMaintenance = (maintenance: Maintenance) => {
-  // TODO: Implement view maintenance details
-  ElMessage.info(`Xem chi tiết bảo trì: ${maintenance.title}`)
+const viewMaintenance = async (maintenance: Maintenance) => {
+  try {
+    loading.value = true
+    const response = await api.getMaintenance(maintenance.id)
+    console.log('View maintenance response:', response)
+    // Extract maintenance data from the new response format
+    viewingMaintenance.value = response.data
+    showViewDialog.value = true
+  } catch (error) {
+    ElMessage.error('Lỗi khi tải chi tiết bảo trì')
+    console.error('View maintenance error:', error)
+    // Fallback to use current data
+    viewingMaintenance.value = maintenance
+    showViewDialog.value = true
+  } finally {
+    loading.value = false
+  }
 }
 
 const editMaintenance = (maintenance: Maintenance) => {
@@ -317,8 +407,8 @@ const deleteMaintenance = async (maintenance: Maintenance) => {
       }
     )
     
-    // TODO: Implement API call
-    // await api.deleteMaintenance(maintenance.id)
+    loading.value = true
+    await api.deleteMaintenance(maintenance.id)
     
     ElMessage.success('Xóa yêu cầu bảo trì thành công')
     fetchMaintenances()
@@ -326,27 +416,44 @@ const deleteMaintenance = async (maintenance: Maintenance) => {
     if (error !== 'cancel') {
       ElMessage.error('Lỗi khi xóa yêu cầu bảo trì')
     }
+  } finally {
+    loading.value = false
   }
 }
 
 const saveMaintenance = async () => {
   try {
     await maintenanceFormRef.value.validate()
+    loading.value = true
     
-    // TODO: Implement API call
+    const formData = {
+      ...maintenanceForm.value,
+      device_id: parseInt(maintenanceForm.value.device_id),
+      type: maintenanceForm.value.type as 'preventive' | 'corrective' | 'emergency',
+      priority: maintenanceForm.value.priority as 'low' | 'medium' | 'high' | 'urgent' | undefined
+    }
+    
+    console.log('Saving maintenance:', formData)
+    
     if (editingMaintenance.value) {
-      // await api.updateMaintenance(editingMaintenance.value.id, maintenanceForm.value)
+      await api.updateMaintenance(editingMaintenance.value.id, formData)
       ElMessage.success('Cập nhật yêu cầu bảo trì thành công')
     } else {
-      // await api.createMaintenance(maintenanceForm.value)
+      const result = await api.createMaintenance(formData)
+      console.log('Create maintenance result:', result)
       ElMessage.success('Tạo yêu cầu bảo trì thành công')
     }
     
     showCreateDialog.value = false
     resetForm()
-    fetchMaintenances()
+    console.log('About to fetch maintenances after save...')
+    await fetchMaintenances()
+    console.log('Fetched maintenances after save')
   } catch (error) {
+    console.error('Save maintenance error:', error)
     ElMessage.error('Lỗi khi lưu yêu cầu bảo trì')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -373,6 +480,28 @@ const handleSizeChange = (size: number) => {
 const handleCurrentChange = (page: number) => {
   currentPage.value = page
   fetchMaintenances()
+}
+
+// Additional functions
+const editMaintenanceFromView = () => {
+  if (viewingMaintenance.value) {
+    editMaintenance(viewingMaintenance.value)
+    showViewDialog.value = false
+  }
+}
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleString('vi-VN')
+}
+
+const getTypeLabel = (type: string) => {
+  const types: Record<string, string> = {
+    preventive: 'Bảo trì định kỳ',
+    corrective: 'Bảo trì sửa chữa',
+    emergency: 'Bảo trì khẩn cấp'
+  }
+  return types[type] || type
 }
 
 // Lifecycle
@@ -412,5 +541,41 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+.maintenance-details {
+  padding: 20px 0;
+}
+
+.detail-item {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.detail-item label {
+  font-weight: 600;
+  min-width: 120px;
+  color: #606266;
+}
+
+.detail-item span {
+  color: #303133;
+}
+
+.detail-item.full-width {
+  flex-direction: column;
+}
+
+.detail-item.full-width label {
+  margin-bottom: 8px;
+}
+
+.detail-item p {
+  margin: 0;
+  padding: 8px 0;
+  color: #303133;
+  line-height: 1.5;
 }
 </style> 

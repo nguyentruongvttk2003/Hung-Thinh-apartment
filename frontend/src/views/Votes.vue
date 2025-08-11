@@ -22,14 +22,16 @@
             </template>
           </el-input>
           <el-select v-model="statusFilter" placeholder="Trạng thái" clearable>
+            <el-option label="Bản nháp" value="draft" />
             <el-option label="Đang diễn ra" value="active" />
-            <el-option label="Đã kết thúc" value="completed" />
+            <el-option label="Đã kết thúc" value="closed" />
             <el-option label="Đã hủy" value="cancelled" />
           </el-select>
           <el-select v-model="typeFilter" placeholder="Loại biểu quyết" clearable>
-            <el-option label="Quyết định chung" value="decision" />
-            <el-option label="Lựa chọn" value="choice" />
-            <el-option label="Đánh giá" value="rating" />
+            <el-option label="Hội nghị chung" value="general_meeting" />
+            <el-option label="Phê duyệt ngân sách" value="budget_approval" />
+            <el-option label="Bầu chọn ban quản lý" value="management_election" />
+            <el-option label="Khác" value="other" />
           </el-select>
         </div>
       </div>
@@ -44,8 +46,8 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="start_date" label="Ngày bắt đầu" />
-        <el-table-column prop="end_date" label="Ngày kết thúc" />
+        <el-table-column prop="start_time" label="Ngày bắt đầu" />
+        <el-table-column prop="end_time" label="Ngày kết thúc" />
         <el-table-column prop="status" label="Trạng thái">
           <template #default="{ row }">
             <el-tag :type="getStatusTag(row.status)">
@@ -98,23 +100,25 @@
         </el-form-item>
         <el-form-item label="Loại biểu quyết" prop="type">
           <el-select v-model="voteForm.type" placeholder="Chọn loại biểu quyết">
-            <el-option label="Quyết định chung" value="decision" />
-            <el-option label="Lựa chọn" value="choice" />
-            <el-option label="Đánh giá" value="rating" />
+            <el-option label="Họp chung cư dân" value="general_meeting" />
+            <el-option label="Phê duyệt ngân sách" value="budget_approval" />
+            <el-option label="Thay đổi quy định" value="rule_change" />
+            <el-option label="Nâng cấp tiện ích" value="facility_upgrade" />
+            <el-option label="Khác" value="other" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Ngày bắt đầu" prop="start_date">
+        <el-form-item label="Thời gian bắt đầu" prop="start_time">
           <el-date-picker
-            v-model="voteForm.start_date"
+            v-model="voteForm.start_time"
             type="datetime"
             placeholder="Chọn ngày và giờ bắt đầu"
             format="DD/MM/YYYY HH:mm"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
-        <el-form-item label="Ngày kết thúc" prop="end_date">
+        <el-form-item label="Thời gian kết thúc" prop="end_time">
           <el-date-picker
-            v-model="voteForm.end_date"
+            v-model="voteForm.end_time"
             type="datetime"
             placeholder="Chọn ngày và giờ kết thúc"
             format="DD/MM/YYYY HH:mm"
@@ -151,6 +155,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
 
+import api from '@/services/api'
 import type { Vote } from '@/types'
 
 // Reactive data
@@ -167,22 +172,42 @@ const editingVote = ref<Vote | null>(null)
 const voteFormRef = ref()
 
 // Form data
-const voteForm = ref({
+const voteForm = ref<{
+  title: string
+  description: string
+  type: 'general_meeting' | 'budget_approval' | 'other' | 'rule_change' | 'facility_upgrade'
+  scope: 'all' | 'block' | 'floor' | 'apartment'
+  target_scope: string | null
+  start_time: string
+  end_time: string
+  status: 'draft' | 'active' | 'closed' | 'cancelled'
+  require_quorum: boolean
+  quorum_percentage: number
+  notes: string
+  options: string[]
+}>({
   title: '',
-  type: '',
-  start_date: '',
-  end_date: '',
   description: '',
+  type: 'general_meeting',
+  scope: 'all',
+  target_scope: null,
+  start_time: '',
+  end_time: '',
+  status: 'draft',
+  require_quorum: true,
+  quorum_percentage: 50,
+  notes: '',
   options: ['', '']
 })
 
 // Form validation rules
 const voteRules = {
   title: [{ required: true, message: 'Vui lòng nhập tiêu đề', trigger: 'blur' }],
+  description: [{ required: true, message: 'Vui lòng nhập mô tả', trigger: 'blur' }],
   type: [{ required: true, message: 'Vui lòng chọn loại biểu quyết', trigger: 'change' }],
-  start_date: [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
-  end_date: [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
-  description: [{ required: true, message: 'Vui lòng nhập mô tả', trigger: 'blur' }]
+  scope: [{ required: true, message: 'Vui lòng chọn phạm vi', trigger: 'change' }],
+  start_time: [{ required: true, message: 'Vui lòng chọn thời gian bắt đầu', trigger: 'change' }],
+  end_time: [{ required: true, message: 'Vui lòng chọn thời gian kết thúc', trigger: 'change' }]
 }
 
 // Computed
@@ -209,38 +234,44 @@ const filteredVotes = computed(() => {
 // Methods
 const getVoteTypeLabel = (type: string) => {
   const types: Record<string, string> = {
-    decision: 'Quyết định chung',
-    choice: 'Lựa chọn',
-    rating: 'Đánh giá'
+    general_meeting: 'Họp chung cư dân',
+    budget_approval: 'Phê duyệt ngân sách',
+    rule_change: 'Thay đổi quy định',
+    facility_upgrade: 'Nâng cấp tiện ích',
+    other: 'Khác'
   }
   return types[type] || type
 }
 
-const getVoteTypeTag = (type: string) => {
-  const tags: Record<string, string> = {
-    decision: 'primary',
-    choice: 'success',
-    rating: 'warning'
+const getVoteTypeTag = (type: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    general_meeting: 'primary',
+    budget_approval: 'warning',
+    rule_change: 'danger',
+    facility_upgrade: 'success',
+    other: 'info'
   }
-  return tags[type] || ''
+  return tags[type] || 'info'
 }
 
 const getStatusLabel = (status: string) => {
   const statuses: Record<string, string> = {
+    draft: 'Bản nháp',
     active: 'Đang diễn ra',
-    completed: 'Đã kết thúc',
+    closed: 'Đã kết thúc',
     cancelled: 'Đã hủy'
   }
   return statuses[status] || status
 }
 
-const getStatusTag = (status: string) => {
-  const tags: Record<string, string> = {
+const getStatusTag = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    draft: 'warning',
     active: 'primary',
-    completed: 'success',
+    closed: 'success',
     cancelled: 'info'
   }
-  return tags[status] || ''
+  return tags[status] || 'info'
 }
 
 const addOption = () => {
@@ -256,49 +287,66 @@ const removeOption = (index: number) => {
 const fetchVotes = async () => {
   loading.value = true
   try {
-    // TODO: Implement API call
-    // const response = await api.getVotes({ page: currentPage.value, per_page: pageSize.value })
-    // votes.value = response.data.data
-    // total.value = response.data.total
+    const params = {
+      page: currentPage.value,
+      per_page: pageSize.value
+    }
+    const response = await api.getVotes(params)
     
-    // Mock data for now
-    votes.value = [
-      {
-        id: 1,
-        title: 'Biểu quyết về việc nâng cấp hệ thống thang máy',
-        type: 'decision',
-        start_date: '2024-01-20 00:00:00',
-        end_date: '2024-01-25 23:59:59',
-        status: 'active',
-        description: 'Biểu quyết về việc nâng cấp hệ thống thang máy tòa A',
-        total_votes: 45,
-        participation_rate: 75,
-        created_at: '2024-01-15',
-        updated_at: '2024-01-15'
+    if (response.success) {
+      // Handle paginated response
+      if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+        const paginatedData = response.data as any
+        votes.value = paginatedData.data as Vote[]
+        total.value = paginatedData.total || 0
+      } else {
+        votes.value = (response.data as Vote[]) || []
+        total.value = votes.value.length
       }
-    ]
-    total.value = votes.value.length
-  } catch (error) {
-    ElMessage.error('Lỗi khi tải danh sách biểu quyết')
+    } else {
+      votes.value = []
+      total.value = 0
+      ElMessage.error(response.message || 'Không thể tải danh sách biểu quyết')
+    }
+  } catch (error: any) {
+    console.error('Error loading votes:', error)
+    votes.value = []
+    total.value = 0
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi tải danh sách biểu quyết')
   } finally {
     loading.value = false
   }
 }
 
-const viewVote = (vote: Vote) => {
-  // TODO: Implement view vote details
-  ElMessage.info(`Xem chi tiết biểu quyết: ${vote.title}`)
+const viewVote = async (vote: Vote) => {
+  try {
+    const response = await api.getVote(vote.id)
+    if (response.success) {
+      // TODO: Implement view dialog similar to Events.vue
+      ElMessage.info(`Xem chi tiết biểu quyết: ${vote.title}`)
+    } else {
+      ElMessage.error('Không thể tải chi tiết biểu quyết')
+    }
+  } catch (error) {
+    ElMessage.error('Lỗi khi tải chi tiết biểu quyết')
+  }
 }
 
 const editVote = (vote: Vote) => {
   editingVote.value = vote
   voteForm.value = {
     title: vote.title,
-    type: vote.type,
-    start_date: vote.start_date,
-    end_date: vote.end_date,
     description: vote.description || '',
-    options: ['', ''] // TODO: Load actual options
+    type: vote.type,
+    scope: vote.scope || 'all',
+    target_scope: vote.target_scope || null,
+    start_time: vote.start_time || '',
+    end_time: vote.end_time || '',
+    status: vote.status || 'draft',
+    require_quorum: vote.require_quorum || true,
+    quorum_percentage: vote.quorum_percentage || 50,
+    notes: vote.notes || '',
+    options: Array.isArray(vote.options) ? vote.options.map(opt => typeof opt === 'string' ? opt : opt.option_text) : ['', '']
   }
   showCreateDialog.value = true
 }
@@ -315,12 +363,14 @@ const deleteVote = async (vote: Vote) => {
       }
     )
     
-    // TODO: Implement API call
-    // await api.deleteVote(vote.id)
-    
-    ElMessage.success('Xóa biểu quyết thành công')
-    fetchVotes()
-  } catch (error) {
+    const response = await api.deleteVote(vote.id)
+    if (response.success) {
+      ElMessage.success('Xóa biểu quyết thành công')
+      fetchVotes()
+    } else {
+      ElMessage.error(response.message || 'Lỗi khi xóa biểu quyết')
+    }
+  } catch (error: any) {
     if (error !== 'cancel') {
       ElMessage.error('Lỗi khi xóa biểu quyết')
     }
@@ -331,20 +381,34 @@ const saveVote = async () => {
   try {
     await voteFormRef.value.validate()
     
-    // TODO: Implement API call
+    const formData = {
+      ...voteForm.value,
+      options: voteForm.value.options.filter(opt => opt.trim()).map(opt => ({ option_text: opt }))
+    }
+    
     if (editingVote.value) {
-      // await api.updateVote(editingVote.value.id, voteForm.value)
-      ElMessage.success('Cập nhật biểu quyết thành công')
+      const response = await api.updateVote(editingVote.value.id, formData as Partial<Vote>)
+      if (response.success) {
+        ElMessage.success('Cập nhật biểu quyết thành công')
+      } else {
+        ElMessage.error(response.message || 'Lỗi khi cập nhật biểu quyết')
+        return
+      }
     } else {
-      // await api.createVote(voteForm.value)
-      ElMessage.success('Tạo biểu quyết thành công')
+      const response = await api.createVote(formData as Partial<Vote>)
+      if (response.success) {
+        ElMessage.success('Tạo biểu quyết thành công')
+      } else {
+        ElMessage.error(response.message || 'Lỗi khi tạo biểu quyết')
+        return
+      }
     }
     
     showCreateDialog.value = false
     resetForm()
     fetchVotes()
-  } catch (error) {
-    ElMessage.error('Lỗi khi lưu biểu quyết')
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi lưu biểu quyết')
   }
 }
 
@@ -352,10 +416,16 @@ const resetForm = () => {
   editingVote.value = null
   voteForm.value = {
     title: '',
-    type: '',
-    start_date: '',
-    end_date: '',
     description: '',
+    type: 'general_meeting',
+    scope: 'all',
+    target_scope: null,
+    start_time: '',
+    end_time: '',
+    status: 'draft',
+    require_quorum: true,
+    quorum_percentage: 50,
+    notes: '',
     options: ['', '']
   }
   voteFormRef.value?.resetFields()

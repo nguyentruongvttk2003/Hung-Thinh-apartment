@@ -72,17 +72,23 @@ export interface Feedback {
 // Invoice types
 export interface Invoice {
   id: number
+  invoice_number: string
   apartment_id: number
-  month: string
-  year: number
+  apartment?: Apartment
+  billing_period_start: string
+  billing_period_end: string
+  due_date: string
   management_fee: number
   electricity_fee: number
   water_fee: number
   parking_fee: number
   other_fees: number
   total_amount: number
-  due_date: string
-  status: 'pending' | 'paid' | 'overdue'
+  paid_amount: number
+  status: 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled'
+  notes?: string
+  created_by: number
+  creator?: User
   created_at: string
   updated_at: string
 }
@@ -90,13 +96,20 @@ export interface Invoice {
 // Payment types
 export interface Payment {
   id: number
+  payment_number: string
   invoice_id: number
+  invoice?: Invoice
+  user_id: number
+  user?: User
   amount: number
-  payment_method: 'cash' | 'bank_transfer' | 'online'
-  payment_date: string
-  reference_number?: string
+  payment_method: 'cash' | 'bank_transfer' | 'qr_code' | 'credit_card' | 'e_wallet'
+  status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded'
+  transaction_id?: string
+  payment_details?: any[] | null
+  paid_at?: string
+  processed_by?: number
+  processor?: User
   notes?: string
-  processed_by: number
   created_at: string
   updated_at: string
 }
@@ -105,13 +118,18 @@ export interface Payment {
 export interface Device {
   id: number
   name: string
-  type: 'elevator' | 'electrical' | 'water' | 'camera' | 'other'
+  device_code: string
+  category: 'elevator' | 'generator' | 'water_pump' | 'air_conditioner' | 'lighting' | 'security' | 'other'
   location: string
-  status: 'active' | 'maintenance' | 'broken'
-  description?: string
-  last_maintenance: string
-  next_maintenance: string
-  assigned_to?: number
+  brand?: string
+  model?: string
+  installation_date: string
+  warranty_expiry?: string
+  status: 'active' | 'inactive' | 'maintenance' | 'broken'
+  specifications?: string
+  notes?: string
+  responsible_technician?: number
+  responsible_technician_info?: User
   created_at: string
   updated_at: string
 }
@@ -121,6 +139,7 @@ export interface Maintenance {
   id: number
   device_id: number
   device_name?: string
+  technician_name?: string
   title: string
   description: string
   type: 'preventive' | 'corrective' | 'emergency'
@@ -129,6 +148,7 @@ export interface Maintenance {
   scheduled_date: string
   completed_date?: string
   assigned_to?: string
+  assigned_technician?: number
   cost?: number
   notes?: string
   created_at: string
@@ -140,14 +160,16 @@ export interface Event {
   id: number
   title: string
   description: string
-  type: 'meeting' | 'party' | 'maintenance' | 'other'
-  start_date: string
-  end_date: string
-  location: string
-  max_participants?: number
-  current_participants: number
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+  type: 'meeting' | 'maintenance' | 'power_outage' | 'water_outage' | 'social_event' | 'emergency'
+  scope: 'all' | 'block' | 'floor' | 'apartment' | 'specific'
+  target_scope?: any
+  start_time: string
+  end_time?: string
+  location?: string
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
   created_by: number
+  notes?: string
+  creator?: User
   created_at: string
   updated_at: string
 }
@@ -157,10 +179,17 @@ export interface Vote {
   id: number
   title: string
   description: string
-  start_date: string
-  end_date: string
-  status: 'active' | 'closed' | 'cancelled'
+  type: 'general_meeting' | 'budget_approval' | 'rule_change' | 'facility_upgrade' | 'other'
+  scope: 'all' | 'block' | 'floor' | 'apartment'
+  target_scope?: any
+  start_time: string
+  end_time: string
+  status: 'draft' | 'active' | 'closed' | 'cancelled'
+  require_quorum: boolean
+  quorum_percentage: number
   created_by: number
+  notes?: string
+  creator?: User
   created_at: string
   updated_at: string
   options?: VoteOption[]

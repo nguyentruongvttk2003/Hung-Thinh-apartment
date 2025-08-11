@@ -27,13 +27,32 @@ class Maintenance extends Model
         'notes',
     ];
 
+    protected $appends = ['device_name', 'technician_name'];
+
     protected $casts = [
         'scheduled_date' => 'date',
-        'scheduled_time' => 'time',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
         'cost' => 'decimal:2',
     ];
+
+    // Accessor cho scheduled_time để đảm bảo định dạng đúng
+    public function getScheduledTimeAttribute($value)
+    {
+        return $value ? \Carbon\Carbon::createFromFormat('H:i:s', $value)->format('H:i') : null;
+    }
+
+    // Accessor để lấy tên device
+    public function getDeviceNameAttribute()
+    {
+        return $this->device ? $this->device->name : null;
+    }
+
+    // Accessor để lấy tên technician
+    public function getTechnicianNameAttribute()
+    {
+        return $this->technician ? $this->technician->name : null;
+    }
 
     public function device()
     {

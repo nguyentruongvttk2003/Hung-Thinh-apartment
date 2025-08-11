@@ -46,26 +46,44 @@
         <el-form-item label="Tiêu đề" prop="title">
           <el-input v-model="eventForm.title" />
         </el-form-item>
+        <el-form-item label="Mô tả" prop="description">
+          <el-input
+            v-model="eventForm.description"
+            type="textarea"
+            :rows="4"
+          />
+        </el-form-item>
         <el-form-item label="Loại sự kiện" prop="type">
           <el-select v-model="eventForm.type" placeholder="Chọn loại sự kiện">
             <el-option label="Họp cư dân" value="meeting" />
-            <el-option label="Sự kiện văn hóa" value="cultural" />
             <el-option label="Bảo trì" value="maintenance" />
-            <el-option label="Khác" value="other" />
+            <el-option label="Mất điện" value="power_outage" />
+            <el-option label="Mất nước" value="water_outage" />
+            <el-option label="Sự kiện xã hội" value="social_event" />
+            <el-option label="Khẩn cấp" value="emergency" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Ngày bắt đầu" prop="start_date">
+        <el-form-item label="Phạm vi" prop="scope">
+          <el-select v-model="eventForm.scope" placeholder="Chọn phạm vi">
+            <el-option label="Toàn bộ" value="all" />
+            <el-option label="Theo tòa" value="block" />
+            <el-option label="Theo tầng" value="floor" />
+            <el-option label="Theo căn hộ" value="apartment" />
+            <el-option label="Cụ thể" value="specific" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Thời gian bắt đầu" prop="start_time">
           <el-date-picker
-            v-model="eventForm.start_date"
+            v-model="eventForm.start_time"
             type="datetime"
             placeholder="Chọn ngày và giờ bắt đầu"
             format="DD/MM/YYYY HH:mm"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
-        <el-form-item label="Ngày kết thúc" prop="end_date">
+        <el-form-item label="Thời gian kết thúc" prop="end_time">
           <el-date-picker
-            v-model="eventForm.end_date"
+            v-model="eventForm.end_time"
             type="datetime"
             placeholder="Chọn ngày và giờ kết thúc"
             format="DD/MM/YYYY HH:mm"
@@ -75,20 +93,101 @@
         <el-form-item label="Địa điểm" prop="location">
           <el-input v-model="eventForm.location" />
         </el-form-item>
-        <el-form-item label="Số người tối đa" prop="max_participants">
-          <el-input-number v-model="eventForm.max_participants" :min="1" />
+        <el-form-item label="Trạng thái" prop="status">
+          <el-select v-model="eventForm.status" placeholder="Chọn trạng thái">
+            <el-option label="Đã lên lịch" value="scheduled" />
+            <el-option label="Đang diễn ra" value="in_progress" />
+            <el-option label="Đã hoàn thành" value="completed" />
+            <el-option label="Đã hủy" value="cancelled" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="Mô tả" prop="description">
+        <el-form-item label="Ghi chú" prop="notes">
           <el-input
-            v-model="eventForm.description"
+            v-model="eventForm.notes"
             type="textarea"
-            :rows="4"
+            :rows="3"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showCreateDialog = false">Hủy</el-button>
         <el-button type="primary" @click="saveEvent">Lưu</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- View Event Dialog -->
+    <el-dialog
+      v-model="showViewDialog"
+      title="Chi tiết sự kiện"
+      width="700px"
+    >
+      <div v-if="viewingEvent" class="event-details">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Tiêu đề:</label>
+              <span>{{ viewingEvent.title }}</span>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Loại sự kiện:</label>
+              <el-tag :type="getEventTypeTag(viewingEvent.type)">
+                {{ getEventTypeLabel(viewingEvent.type) }}
+              </el-tag>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Phạm vi:</label>
+              <span>{{ getScopeLabel(viewingEvent.scope) }}</span>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Trạng thái:</label>
+              <el-tag :type="getStatusTag(viewingEvent.status)">
+                {{ getStatusLabel(viewingEvent.status) }}
+              </el-tag>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Thời gian bắt đầu:</label>
+              <span>{{ formatDateTime(viewingEvent.start_time) }}</span>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Thời gian kết thúc:</label>
+              <span>{{ formatDateTime(viewingEvent.end_time || '') }}</span>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <div class="detail-item">
+              <label>Địa điểm:</label>
+              <span>{{ viewingEvent.location || 'Chưa xác định' }}</span>
+            </div>
+          </el-col>
+        </el-row>
+        <div class="detail-item full-width">
+          <label>Mô tả:</label>
+          <p>{{ viewingEvent.description || 'Không có mô tả' }}</p>
+        </div>
+        <div v-if="viewingEvent.notes" class="detail-item full-width">
+          <label>Ghi chú:</label>
+          <p>{{ viewingEvent.notes }}</p>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showViewDialog = false">Đóng</el-button>
+        <el-button type="primary" @click="editEventFromView">Chỉnh sửa</el-button>
       </template>
     </el-dialog>
   </div>
@@ -103,6 +202,20 @@ import DataTable from '@/components/DataTable.vue'
 import api from '@/services/api'
 import type { Event } from '@/types'
 
+// Define form interface for type safety
+interface EventForm {
+  title: string
+  description: string
+  type: Event['type']
+  scope: Event['scope']
+  target_scope: Event['target_scope']
+  start_time: string
+  end_time: string
+  location: string
+  status: Event['status']
+  notes: string
+}
+
 // Reactive data
 const loading = ref(false)
 const events = ref<Event[]>([])
@@ -114,24 +227,27 @@ const editingEvent = ref<Event | null>(null)
 const eventFormRef = ref()
 
 // Form data
-const eventForm = ref({
+const eventForm = ref<EventForm>({
   title: '',
-  type: '',
-  start_date: '',
-  end_date: '',
+  description: '',
+  type: 'meeting',
+  scope: 'all',
+  target_scope: null,
+  start_time: '',
+  end_time: '',
   location: '',
-  max_participants: 50,
-  description: ''
+  status: 'scheduled',
+  notes: ''
 })
 
 // Form validation rules
 const eventRules = {
   title: [{ required: true, message: 'Vui lòng nhập tiêu đề', trigger: 'blur' }],
+  description: [{ required: true, message: 'Vui lòng nhập mô tả', trigger: 'blur' }],
   type: [{ required: true, message: 'Vui lòng chọn loại sự kiện', trigger: 'change' }],
-  start_date: [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
-  end_date: [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
-  location: [{ required: true, message: 'Vui lòng nhập địa điểm', trigger: 'blur' }],
-  max_participants: [{ required: true, message: 'Vui lòng nhập số người tối đa', trigger: 'blur' }]
+  scope: [{ required: true, message: 'Vui lòng chọn phạm vi', trigger: 'change' }],
+  start_time: [{ required: true, message: 'Vui lòng chọn thời gian bắt đầu', trigger: 'change' }],
+  location: [{ required: true, message: 'Vui lòng nhập địa điểm', trigger: 'blur' }]
 }
 
 // Table configuration  
@@ -145,16 +261,22 @@ const columns = [
     formatter: (row: Event) => getEventTypeLabel(row.type)
   },
   { 
-    prop: 'start_date', 
-    label: 'Bắt đầu', 
-    width: 160,
-    formatter: (row: Event) => formatDateTime(row.start_date) 
+    prop: 'scope', 
+    label: 'Phạm vi', 
+    width: 100,
+    formatter: (row: Event) => getScopeLabel(row.scope)
   },
   { 
-    prop: 'end_date', 
+    prop: 'start_time', 
+    label: 'Bắt đầu', 
+    width: 160,
+    formatter: (row: Event) => formatDateTime(row.start_time) 
+  },
+  { 
+    prop: 'end_time', 
     label: 'Kết thúc', 
     width: 160,
-    formatter: (row: Event) => formatDateTime(row.end_date) 
+    formatter: (row: Event) => formatDateTime(row.end_time || '') 
   },
   { prop: 'location', label: 'Địa điểm', minWidth: 150 },
   { 
@@ -162,12 +284,6 @@ const columns = [
     label: 'Trạng thái', 
     width: 120,
     formatter: (row: Event) => getStatusLabel(row.status)
-  },
-  { 
-    prop: 'current_participants', 
-    label: 'Người tham gia', 
-    width: 150,
-    formatter: (row: Event) => `${row.current_participants}/${row.max_participants || 0}`
   }
 ]
 
@@ -177,40 +293,56 @@ const filters = [
     placeholder: 'Loại sự kiện',
     options: [
       { label: 'Họp cư dân', value: 'meeting' },
-      { label: 'Sự kiện văn hóa', value: 'cultural' },
       { label: 'Bảo trì', value: 'maintenance' },
-      { label: 'Khác', value: 'other' }
+      { label: 'Mất điện', value: 'power_outage' },
+      { label: 'Mất nước', value: 'water_outage' },
+      { label: 'Sự kiện xã hội', value: 'social_event' },
+      { label: 'Khẩn cấp', value: 'emergency' }
     ]
   },
   {
     key: 'status',
     placeholder: 'Trạng thái',
     options: [
-      { label: 'Sắp diễn ra', value: 'upcoming' },
-      { label: 'Đang diễn ra', value: 'ongoing' },
-      { label: 'Đã kết thúc', value: 'completed' },
+      { label: 'Đã lên lịch', value: 'scheduled' },
+      { label: 'Đang diễn ra', value: 'in_progress' },
+      { label: 'Đã hoàn thành', value: 'completed' },
       { label: 'Đã hủy', value: 'cancelled' }
     ]
   }
 ]
 
 // Forward declarations for actions
+const showViewDialog = ref(false)
+const viewingEvent = ref<Event | null>(null)
+
 const viewEvent = (event: Event) => {
-  ElMessage.info(`Xem chi tiết sự kiện: ${event.title}`)
+  viewingEvent.value = event
+  showViewDialog.value = true
 }
 
 const editEvent = (event: Event) => {
   editingEvent.value = event
   eventForm.value = {
     title: event.title,
+    description: event.description || '',
     type: event.type,
-    start_date: event.start_date,
-    end_date: event.end_date,
-    location: event.location,
-    max_participants: event.max_participants ?? 50,
-    description: event.description || ''
+    scope: event.scope || 'all',
+    target_scope: event.target_scope || null,
+    start_time: event.start_time || '',
+    end_time: event.end_time || '',
+    location: event.location || '',
+    status: event.status || 'scheduled',
+    notes: event.notes || ''
   }
   showCreateDialog.value = true
+}
+
+const editEventFromView = () => {
+  if (viewingEvent.value) {
+    editEvent(viewingEvent.value)
+    showViewDialog.value = false
+  }
 }
 
 const deleteEvent = async (event: Event) => {
@@ -225,14 +357,16 @@ const deleteEvent = async (event: Event) => {
       }
     )
     
-    // TODO: Implement when API is ready
-    // await api.deleteEvent(event.id)
-    ElMessage.success('Xóa sự kiện thành công (demo)')
+    loading.value = true
+    await api.deleteEvent(event.id)
+    ElMessage.success('Xóa sự kiện thành công')
     loadEvents()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('Lỗi khi xóa sự kiện')
     }
+  } finally {
+    loading.value = false
   }
 }
 
@@ -264,9 +398,11 @@ const actions = [
 const getEventTypeLabel = (type: string) => {
   const types: Record<string, string> = {
     meeting: 'Họp cư dân',
-    cultural: 'Sự kiện văn hóa',
     maintenance: 'Bảo trì',
-    other: 'Khác'
+    power_outage: 'Mất điện',
+    water_outage: 'Mất nước',
+    social_event: 'Sự kiện xã hội',
+    emergency: 'Khẩn cấp'
   }
   return types[type] || type
 }
@@ -274,18 +410,31 @@ const getEventTypeLabel = (type: string) => {
 const getEventTypeTag = (type: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
   const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
     meeting: 'primary',
-    cultural: 'success',
     maintenance: 'warning',
-    other: 'info'
+    power_outage: 'danger',
+    water_outage: 'danger',
+    social_event: 'success',
+    emergency: 'danger'
   }
   return tags[type] || 'info'
 }
 
+const getScopeLabel = (scope: string) => {
+  const scopes: Record<string, string> = {
+    all: 'Toàn bộ',
+    block: 'Theo tòa',
+    floor: 'Theo tầng',
+    apartment: 'Theo căn hộ',
+    specific: 'Cụ thể'
+  }
+  return scopes[scope] || scope
+}
+
 const getStatusLabel = (status: string) => {
   const statuses: Record<string, string> = {
-    upcoming: 'Sắp diễn ra',
-    ongoing: 'Đang diễn ra',
-    completed: 'Đã kết thúc',
+    scheduled: 'Đã lên lịch',
+    in_progress: 'Đang diễn ra',
+    completed: 'Đã hoàn thành',
     cancelled: 'Đã hủy'
   }
   return statuses[status] || status
@@ -293,8 +442,8 @@ const getStatusLabel = (status: string) => {
 
 const getStatusTag = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
   const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
-    upcoming: 'warning',
-    ongoing: 'primary',
+    scheduled: 'warning',
+    in_progress: 'primary',
     completed: 'success',
     cancelled: 'info'
   }
@@ -309,29 +458,28 @@ const loadEvents = async () => {
       per_page: pageSize.value
     }
     const response = await api.getEvents(params)
-    events.value = response.data
-    total.value = response.total
-  } catch (error) {
-    // Fallback to mock data for demo
-    events.value = [
-      {
-        id: 1,
-        title: 'Họp cư dân tháng 1',
-        type: 'meeting',
-        start_date: '2024-01-25 19:00:00',
-        end_date: '2024-01-25 21:00:00',
-        location: 'Hội trường tầng 1',
-        status: 'upcoming',
-        description: 'Họp cư dân định kỳ tháng 1',
-        max_participants: 100,
-        current_participants: 45,
-        created_by: 1,
-        created_at: '2024-01-15',
-        updated_at: '2024-01-15'
+    console.log('loadEvents response:', response)
+    
+    if (response.success) {
+      // Handle paginated response
+      if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+        const paginatedData = response.data as any
+        events.value = paginatedData.data as Event[]
+        total.value = paginatedData.total || 0
+      } else {
+        events.value = (response.data as Event[]) || []
+        total.value = events.value.length
       }
-    ]
-    total.value = events.value.length
-    ElMessage.warning('Sử dụng dữ liệu demo - API chưa available')
+    } else {
+      events.value = []
+      total.value = 0
+      ElMessage.error(response.message || 'Không thể tải danh sách sự kiện')
+    }
+  } catch (error: any) {
+    console.error('Error loading events:', error)
+    events.value = []
+    total.value = 0
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi tải danh sách sự kiện')
   } finally {
     loading.value = false
   }
@@ -347,15 +495,28 @@ const formatDateTime = (dateString: string): string => {
 const saveEvent = async () => {
   try {
     await eventFormRef.value.validate()
+    loading.value = true
+    
+    // Create a properly typed event data object
+    const eventData: Partial<Event> = {
+      title: eventForm.value.title,
+      description: eventForm.value.description,
+      type: eventForm.value.type as Event['type'],
+      scope: eventForm.value.scope as Event['scope'],
+      target_scope: eventForm.value.target_scope,
+      start_time: eventForm.value.start_time,
+      end_time: eventForm.value.end_time,
+      location: eventForm.value.location,
+      status: eventForm.value.status as Event['status'],
+      notes: eventForm.value.notes
+    }
     
     if (editingEvent.value) {
-      // TODO: Implement when API is ready
-      // await api.updateEvent(editingEvent.value.id, eventForm.value)
-      ElMessage.success('Cập nhật sự kiện thành công (demo)')
+      await api.updateEvent(editingEvent.value.id, eventData)
+      ElMessage.success('Cập nhật sự kiện thành công')
     } else {
-      // TODO: Implement when API is ready
-      // await api.createEvent(eventForm.value)
-      ElMessage.success('Tạo sự kiện thành công (demo)')
+      await api.createEvent(eventData)
+      ElMessage.success('Tạo sự kiện thành công')
     }
     
     showCreateDialog.value = false
@@ -363,6 +524,8 @@ const saveEvent = async () => {
     loadEvents()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || 'Lỗi khi lưu sự kiện')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -370,12 +533,15 @@ const resetForm = () => {
   editingEvent.value = null
   eventForm.value = {
     title: '',
-    type: '',
-    start_date: '',
-    end_date: '',
+    description: '',
+    type: 'meeting',
+    scope: 'all',
+    target_scope: null,
+    start_time: '',
+    end_time: '',
     location: '',
-    max_participants: 50,
-    description: ''
+    status: 'scheduled',
+    notes: ''
   }
   eventFormRef.value?.resetFields()
 }
@@ -436,5 +602,41 @@ onMounted(() => {
 .participants-text {
   font-size: 12px;
   color: #666;
+}
+
+.event-details {
+  padding: 20px 0;
+}
+
+.detail-item {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.detail-item label {
+  font-weight: 600;
+  min-width: 120px;
+  color: #606266;
+}
+
+.detail-item span {
+  color: #303133;
+}
+
+.detail-item.full-width {
+  flex-direction: column;
+}
+
+.detail-item.full-width label {
+  margin-bottom: 8px;
+}
+
+.detail-item p {
+  margin: 0;
+  padding: 8px 0;
+  color: #303133;
+  line-height: 1.5;
 }
 </style> 

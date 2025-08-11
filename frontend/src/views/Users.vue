@@ -110,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 
@@ -149,7 +149,7 @@ const userForm = reactive<UserForm>({
   password: ''
 })
 
-const userRules: FormRules = {
+const userRules = computed<FormRules>(() => ({
   name: [
     { required: true, message: 'Vui lòng nhập họ tên', trigger: 'blur' }
   ],
@@ -166,11 +166,13 @@ const userRules: FormRules = {
   status: [
     { required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }
   ],
-  password: [
+  password: editingUser.value ? [
+    { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự (nếu nhập)', trigger: 'blur' }
+  ] : [
     { required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' },
     { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự', trigger: 'blur' }
   ]
-}
+}))
 
 // Methods
 async function loadUsers() {
@@ -262,7 +264,15 @@ async function saveUser() {
     
     if (editingUser.value) {
       console.log('Updating user:', editingUser.value.id)
-      await api.updateUser(editingUser.value.id, userForm)
+      
+      // Create update data without password if it's empty
+      const updateData: any = { ...userForm }
+      if (!updateData.password || updateData.password.trim() === '') {
+        delete updateData.password
+      }
+      
+      console.log('Update data:', updateData)
+      await api.updateUser(editingUser.value.id, updateData)
       ElMessage.success('Cập nhật người dùng thành công')
     } else {
       console.log('Creating new user...')

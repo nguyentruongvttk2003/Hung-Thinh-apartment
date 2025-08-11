@@ -1,138 +1,521 @@
 <template>
-    <div class="devices-page">
-      <div class="page-header">
-        <h1>Quản lý Thiết bị</h1>
+  <div class="devices-page">
+    <div class="page-header">
+      <h2>Quản lý thiết bị</h2>
+      <div class="header-actions">
+        <el-button type="primary" @click="showCreateDialog = true">
+          <el-icon><Plus /></el-icon>
+          Thêm thiết bị
+        </el-button>
       </div>
+    </div>
 
-      <DataTable
-        title="Danh sách thiết bị"
+    <!-- Filters -->
+    <el-card class="filter-card">
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <el-select
+            v-model="filters.category"
+            placeholder="Loại thiết bị"
+            clearable
+            @change="loadDevices"
+          >
+            <el-option label="Tất cả" value="" />
+            <el-option label="Thang máy" value="elevator" />
+            <el-option label="Máy phát điện" value="generator" />
+            <el-option label="Máy bơm nước" value="water_pump" />
+            <el-option label="Điều hòa" value="air_conditioner" />
+            <el-option label="Hệ thống chiếu sáng" value="lighting" />
+            <el-option label="An ninh" value="security" />
+            <el-option label="Khác" value="other" />
+          </el-select>
+        </el-col>
+        <el-col :span="6">
+          <el-select
+            v-model="filters.status"
+            placeholder="Trạng thái"
+            clearable
+            @change="loadDevices"
+          >
+            <el-option label="Tất cả" value="" />
+            <el-option label="Hoạt động" value="active" />
+            <el-option label="Không hoạt động" value="inactive" />
+            <el-option label="Bảo trì" value="maintenance" />
+            <el-option label="Hỏng" value="broken" />
+          </el-select>
+        </el-col>
+        <el-col :span="12">
+          <el-input
+            v-model="filters.search"
+            placeholder="Tìm kiếm theo tên, mã thiết bị, vị trí..."
+            @input="handleSearch"
+            clearable
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+        </el-col>
+      </el-row>
+    </el-card>
+
+    <!-- Devices Table -->
+    <el-card>
+      <el-table
         :data="devices"
-        :columns="columns"
-        :loading="loading"
-        :total="total"
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :filters="filters"
-        :actions="actions"
-        :search-keys="['name', 'location', 'description']"
-        searchPlaceholder="Tìm kiếm theo tên, vị trí..."
-        exportable
-        @refresh="loadDevices"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
+        v-loading="loading"
+        style="width: 100%"
+        @sort-change="handleSortChange"
       >
-        <template #toolbar-actions>
-          <el-button type="primary" @click="showCreateDialog = true">
-            <el-icon><Plus /></el-icon>
-            Thêm thiết bị
-          </el-button>
-        </template>
-      </DataTable>
+        <el-table-column prop="device_code" label="Mã thiết bị" width="120" sortable />
+        <el-table-column prop="name" label="Tên thiết bị" width="180" sortable />
+        <el-table-column prop="category" label="Loại thiết bị" width="150">
+          <template #default="{ row }">
+            <el-tag :type="getCategoryTagType(row.category)">
+              {{ getCategoryLabel(row.category) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="location" label="Vị trí" width="150" sortable />
+        <el-table-column prop="brand" label="Thương hiệu" width="120" />
+        <el-table-column prop="model" label="Model" width="120" />
+        <el-table-column prop="status" label="Trạng thái" width="120">
+          <template #default="{ row }">
+            <el-tag :type="getStatusTagType(row.status)">
+              {{ getStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="installation_date" label="Ngày lắp đặt" width="120" sortable>
+          <template #default="{ row }">
+            {{ formatDate(row.installation_date) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="Thao tác" width="300" fixed="right">
+          <template #default="{ row }">
+            <div class="action-buttons">
+              <el-button size="small" @click="viewDevice(row)">Xem</el-button>
+              <el-button size="small" type="primary" @click="editDevice(row)">Sửa</el-button>
+              <el-button size="small" type="danger" @click="deleteDevice(row)">Xóa</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
-      <!-- Create/Edit Dialog -->
+      <!-- Pagination -->
+      <div class="pagination-wrapper">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </el-card>
+
+    <!-- Create/Edit Device Dialog -->
     <el-dialog
       v-model="showCreateDialog"
       :title="editingDevice ? 'Sửa thiết bị' : 'Thêm thiết bị mới'"
-      width="600px"
+      width="700px"
+      @close="resetDeviceForm"
     >
       <el-form
         ref="deviceFormRef"
         :model="deviceForm"
         :rules="deviceRules"
-        label-width="120px"
+        label-width="150px"
       >
-        <el-form-item label="Tên thiết bị" prop="name">
-          <el-input v-model="deviceForm.name" />
-        </el-form-item>
-        <el-form-item label="Loại thiết bị" prop="type">
-          <el-select v-model="deviceForm.type" placeholder="Chọn loại thiết bị">
-            <el-option label="Thang máy" value="elevator" />
-            <el-option label="Hệ thống điện" value="electrical" />
-            <el-option label="Hệ thống nước" value="water" />
-            <el-option label="Camera" value="camera" />
-            <el-option label="Khác" value="other" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Vị trí" prop="location">
-          <el-input v-model="deviceForm.location" />
-        </el-form-item>
-        <el-form-item label="Trạng thái" prop="status">
-          <el-select v-model="deviceForm.status" placeholder="Chọn trạng thái">
-            <el-option label="Hoạt động" value="active" />
-            <el-option label="Bảo trì" value="maintenance" />
-            <el-option label="Hỏng" value="broken" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Mô tả" prop="description">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="Tên thiết bị" prop="name">
+              <el-input v-model="deviceForm.name" placeholder="Nhập tên thiết bị" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="Mã thiết bị" prop="device_code">
+              <el-input v-model="deviceForm.device_code" placeholder="Nhập mã thiết bị" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="Loại thiết bị" prop="category">
+              <el-select v-model="deviceForm.category" placeholder="Chọn loại thiết bị" style="width: 100%">
+                <el-option label="Thang máy" value="elevator" />
+                <el-option label="Máy phát điện" value="generator" />
+                <el-option label="Máy bơm nước" value="water_pump" />
+                <el-option label="Điều hòa" value="air_conditioner" />
+                <el-option label="Hệ thống chiếu sáng" value="lighting" />
+                <el-option label="An ninh" value="security" />
+                <el-option label="Khác" value="other" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="Vị trí" prop="location">
+              <el-input v-model="deviceForm.location" placeholder="Nhập vị trí lắp đặt" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="Thương hiệu" prop="brand">
+              <el-input v-model="deviceForm.brand" placeholder="Nhập thương hiệu" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="Model" prop="model">
+              <el-input v-model="deviceForm.model" placeholder="Nhập model" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="Ngày lắp đặt" prop="installation_date">
+              <el-date-picker
+                v-model="deviceForm.installation_date"
+                type="date"
+                format="DD/MM/YYYY"
+                value-format="YYYY-MM-DD"
+                placeholder="Chọn ngày lắp đặt"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="Trạng thái" prop="status">
+              <el-select v-model="deviceForm.status" placeholder="Chọn trạng thái" style="width: 100%">
+                <el-option label="Hoạt động" value="active" />
+                <el-option label="Không hoạt động" value="inactive" />
+                <el-option label="Bảo trì" value="maintenance" />
+                <el-option label="Hỏng" value="broken" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="Thông số kỹ thuật" prop="specifications">
           <el-input
-            v-model="deviceForm.description"
+            v-model="deviceForm.specifications"
             type="textarea"
             :rows="3"
+            placeholder="Nhập thông số kỹ thuật"
+          />
+        </el-form-item>
+
+        <el-form-item label="Ghi chú" prop="notes">
+          <el-input
+            v-model="deviceForm.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="Nhập ghi chú"
           />
         </el-form-item>
       </el-form>
+
       <template #footer>
         <el-button @click="showCreateDialog = false">Hủy</el-button>
-        <el-button type="primary" @click="saveDevice">Lưu</el-button>
+        <el-button type="primary" @click="saveDevice" :loading="saving">
+          {{ editingDevice ? 'Cập nhật' : 'Tạo' }}
+        </el-button>
       </template>
     </el-dialog>
-    </div>
+
+    <!-- View Device Dialog -->
+    <el-dialog
+      v-model="showViewDialog"
+      title="Chi tiết thiết bị"
+      width="700px"
+    >
+      <div v-if="viewingDevice" class="device-detail">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Mã thiết bị:</label>
+              <p>{{ viewingDevice.device_code }}</p>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Tên thiết bị:</label>
+              <p>{{ viewingDevice.name }}</p>
+            </div>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Loại thiết bị:</label>
+              <el-tag :type="getCategoryTagType(viewingDevice.category)">
+                {{ getCategoryLabel(viewingDevice.category) }}
+              </el-tag>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Vị trí:</label>
+              <p>{{ viewingDevice.location }}</p>
+            </div>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Thương hiệu:</label>
+              <p>{{ viewingDevice.brand || '-' }}</p>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Model:</label>
+              <p>{{ viewingDevice.model || '-' }}</p>
+            </div>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Trạng thái:</label>
+              <el-tag :type="getStatusTagType(viewingDevice.status)">
+                {{ getStatusLabel(viewingDevice.status) }}
+              </el-tag>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Ngày lắp đặt:</label>
+              <p>{{ formatDate(viewingDevice.installation_date) }}</p>
+            </div>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20" v-if="viewingDevice.warranty_expiry">
+          <el-col :span="12">
+            <div class="detail-item">
+              <label>Hết hạn bảo hành:</label>
+              <p>{{ formatDate(viewingDevice.warranty_expiry) }}</p>
+            </div>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20" v-if="viewingDevice.specifications">
+          <el-col :span="24">
+            <div class="detail-item">
+              <label>Thông số kỹ thuật:</label>
+              <p>{{ viewingDevice.specifications }}</p>
+            </div>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20" v-if="viewingDevice.notes">
+          <el-col :span="24">
+            <div class="detail-item">
+              <label>Ghi chú:</label>
+              <p>{{ viewingDevice.notes }}</p>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+
+      <template #footer>
+        <el-button @click="showViewDialog = false">Đóng</el-button>
+        <el-button type="primary" @click="editDeviceFromView">Sửa</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete, View } from '@element-plus/icons-vue'
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
+import { Plus, Search } from '@element-plus/icons-vue'
 
-import DataTable from '@/components/DataTable.vue'
 import api from '@/services/api'
 import type { Device } from '@/types'
 
-// Reactive data
-const loading = ref(false)
+// Data
 const devices = ref<Device[]>([])
+const loading = ref(false)
+const saving = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
-const showCreateDialog = ref(false)
-const editingDevice = ref<Device | null>(null)
-const deviceFormRef = ref()
 
-// Form data
-const deviceForm = ref({
-  name: '',
-  type: '',
-  location: '',
+// Dialog states
+const showCreateDialog = ref(false)
+const showViewDialog = ref(false)
+const editingDevice = ref<Device | null>(null)
+const viewingDevice = ref<Device | null>(null)
+const deviceFormRef = ref<FormInstance>()
+
+// Filters
+const filters = reactive({
+  category: '',
   status: '',
-  description: ''
+  search: ''
+})
+
+// Form
+const deviceForm = reactive({
+  name: '',
+  device_code: '',
+  category: '',
+  location: '',
+  brand: '',
+  model: '',
+  installation_date: '',
+  status: '',
+  specifications: '',
+  notes: ''
 })
 
 // Form validation rules
-const deviceRules = {
+const deviceRules: FormRules = {
   name: [{ required: true, message: 'Vui lòng nhập tên thiết bị', trigger: 'blur' }],
-  type: [{ required: true, message: 'Vui lòng chọn loại thiết bị', trigger: 'change' }],
+  device_code: [{ required: true, message: 'Vui lòng nhập mã thiết bị', trigger: 'blur' }],
+  category: [{ required: true, message: 'Vui lòng chọn loại thiết bị', trigger: 'change' }],
   location: [{ required: true, message: 'Vui lòng nhập vị trí', trigger: 'blur' }],
+  installation_date: [{ required: true, message: 'Vui lòng chọn ngày lắp đặt', trigger: 'change' }],
   status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }]
 }
 
-// Forward declarations for handlers
-const viewDevice = (device: Device) => {
-  ElMessage.info(`Xem chi tiết thiết bị: ${device.name}`)
+// Search timeout
+let searchTimeout: number
+
+// Methods
+const getCategoryLabel = (category: string) => {
+  const categories: Record<string, string> = {
+    elevator: 'Thang máy',
+    generator: 'Máy phát điện',
+    water_pump: 'Máy bơm nước',
+    air_conditioner: 'Điều hòa',
+    lighting: 'Hệ thống chiếu sáng',
+    security: 'An ninh',
+    other: 'Khác'
+  }
+  return categories[category] || category
 }
 
-const editDevice = (device: Device) => {
-  editingDevice.value = device
-  deviceForm.value = {
-    name: device.name,
-    type: device.type,
-    location: device.location,
-    status: device.status,
-    description: device.description || ''
+const getCategoryTagType = (category: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    elevator: 'primary',
+    generator: 'warning',
+    water_pump: 'info',
+    air_conditioner: 'success',
+    lighting: 'warning',
+    security: 'danger',
+    other: 'info'
   }
+  return tags[category] || 'info'
+}
+
+const getStatusLabel = (status: string) => {
+  const statuses: Record<string, string> = {
+    active: 'Hoạt động',
+    inactive: 'Không hoạt động',
+    maintenance: 'Bảo trì',
+    broken: 'Hỏng'
+  }
+  return statuses[status] || status
+}
+
+const getStatusTagType = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
+  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    active: 'success',
+    inactive: 'info',
+    maintenance: 'warning',
+    broken: 'danger'
+  }
+  return tags[status] || 'info'
+}
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleDateString('vi-VN')
+}
+
+// Load devices
+async function loadDevices() {
+  loading.value = true
+  try {
+    const params = {
+      page: currentPage.value,
+      per_page: pageSize.value,
+      category: filters.category || undefined,
+      status: filters.status || undefined,
+      search: filters.search || undefined
+    }
+    
+    const response = await api.getDevices(params)
+    devices.value = response.data
+    total.value = response.total
+  } catch (error) {
+    console.error('Load devices error:', error)
+    ElMessage.error('Lỗi khi tải danh sách thiết bị')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Handle search
+function handleSearch() {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    currentPage.value = 1
+    loadDevices()
+  }, 300)
+}
+
+// Handle sort change
+function handleSortChange({ prop, order }: { prop: string; order: string }) {
+  // Implement sorting logic if needed
+  console.log('Sort change:', prop, order)
+}
+
+// View device
+function viewDevice(device: Device) {
+  viewingDevice.value = device
+  showViewDialog.value = true
+}
+
+// Edit device
+function editDevice(device: Device) {
+  editingDevice.value = device
+  Object.assign(deviceForm, {
+    name: device.name,
+    device_code: device.device_code,
+    category: device.category,
+    location: device.location,
+    brand: device.brand || '',
+    model: device.model || '',
+    installation_date: device.installation_date,
+    status: device.status,
+    specifications: device.specifications || '',
+    notes: device.notes || ''
+  })
   showCreateDialog.value = true
 }
 
-const deleteDevice = async (device: Device) => {
+// Edit device from view
+function editDeviceFromView() {
+  if (viewingDevice.value) {
+    showViewDialog.value = false
+    editDevice(viewingDevice.value)
+  }
+}
+
+// Delete device
+async function deleteDevice(device: Device) {
   try {
     await ElMessageBox.confirm(
       `Bạn có chắc chắn muốn xóa thiết bị "${device.name}"?`,
@@ -144,221 +527,70 @@ const deleteDevice = async (device: Device) => {
       }
     )
     
-    // Mock delete for demo - replace with real API call when available
+    await api.deleteDevice(device.id)
     ElMessage.success('Xóa thiết bị thành công')
     loadDevices()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('Lỗi khi xóa thiết bị')
+      console.error('Delete device error:', error)
+      ElMessage.error('Có lỗi xảy ra khi xóa thiết bị')
     }
   }
 }
 
-// Table configuration
-const columns = [
-  { prop: 'id', label: 'ID', width: 80 },
-  { prop: 'name', label: 'Tên thiết bị', minWidth: 150 },
-  { 
-    prop: 'type', 
-    label: 'Loại thiết bị', 
-    width: 150,
-    formatter: (row: Device) => getDeviceTypeLabel(row.type)
-  },
-  { prop: 'location', label: 'Vị trí', minWidth: 120 },
-  { 
-    prop: 'status', 
-    label: 'Trạng thái', 
-    width: 120,
-    formatter: (row: Device) => getStatusLabel(row.status)
-  },
-  { 
-    prop: 'last_maintenance', 
-    label: 'Bảo trì cuối', 
-    width: 120,
-    formatter: (row: Device) => formatDate(row.last_maintenance)
-  },
-  { 
-    prop: 'next_maintenance', 
-    label: 'Bảo trì tiếp theo', 
-    width: 120,
-    formatter: (row: Device) => formatDate(row.next_maintenance)
-  }
-]
-
-const filters = [
-  {
-    key: 'status',
-    placeholder: 'Trạng thái',
-    options: [
-      { label: 'Hoạt động', value: 'active' },
-      { label: 'Bảo trì', value: 'maintenance' },
-      { label: 'Hỏng', value: 'broken' }
-    ]
-  },
-  {
-    key: 'type',
-    placeholder: 'Loại thiết bị',
-    options: [
-      { label: 'Thang máy', value: 'elevator' },
-      { label: 'Hệ thống điện', value: 'electrical' },
-      { label: 'Hệ thống nước', value: 'water' },
-      { label: 'Camera', value: 'camera' },
-      { label: 'Khác', value: 'other' }
-    ]
-  }
-]
-
-const actions = [
-  {
-    key: 'view',
-    label: 'Xem',
-    type: 'default',
-    icon: View,
-    handler: viewDevice
-  },
-  {
-    key: 'edit',
-    label: 'Sửa',
-    type: 'primary',
-    icon: Edit,
-    handler: editDevice
-  },
-  {
-    key: 'delete',
-    label: 'Xóa',
-    type: 'danger',
-    icon: Delete,
-    handler: deleteDevice
-  }
-]
-
-// Methods
-const getDeviceTypeLabel = (type: string) => {
-  const types: Record<string, string> = {
-    elevator: 'Thang máy',
-    electrical: 'Hệ thống điện',
-    water: 'Hệ thống nước',
-    camera: 'Camera',
-    other: 'Khác'
-  }
-  return types[type] || type
-}
-
-const getDeviceTypeTag = (type: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
-  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
-    elevator: 'primary',
-    electrical: 'warning',
-    water: 'info',
-    camera: 'success',
-    other: 'info'
-  }
-  return tags[type] || 'info'
-}
-
-const getStatusLabel = (status: string) => {
-  const statuses: Record<string, string> = {
-    active: 'Hoạt động',
-    maintenance: 'Bảo trì',
-    broken: 'Hỏng'
-  }
-  return statuses[status] || status
-}
-
-const getStatusTag = (status: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
-  const tags: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
-    active: 'success',
-    maintenance: 'warning',
-    broken: 'danger'
-  }
-  return tags[status] || 'info'
-}
-
-const loadDevices = async () => {
-  loading.value = true
-  try {
-    // Mock data for demo - replace with real API call when available
-    const mockDevices: Device[] = [
-      {
-        id: 1,
-        name: 'Thang máy A',
-        type: 'elevator',
-        location: 'Tòa A',
-        status: 'active',
-        description: 'Thang máy tòa A',
-        last_maintenance: '2024-01-15',
-        next_maintenance: '2024-04-15',
-        created_at: '2024-01-01',
-        updated_at: '2024-01-15'
-      },
-      {
-        id: 2,
-        name: 'Camera sảnh',
-        type: 'camera',
-        location: 'Sảnh tầng 1',
-        status: 'active',
-        description: 'Camera an ninh sảnh chính',
-        last_maintenance: '2024-01-10',
-        next_maintenance: '2024-04-10',
-        created_at: '2024-01-01',
-        updated_at: '2024-01-10'
-      }
-    ]
-    
-    devices.value = mockDevices
-    total.value = mockDevices.length
-  } catch (error) {
-    ElMessage.error('Lỗi khi tải danh sách thiết bị')
-  } finally {
-    loading.value = false
-  }
-}
-
-
-
-const formatDate = (dateString: string): string => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString('vi-VN')
-}
-
-const saveDevice = async () => {
+// Save device
+async function saveDevice() {
+  if (!deviceFormRef.value) return
+  
   try {
     await deviceFormRef.value.validate()
-    
+    saving.value = true
+
     if (editingDevice.value) {
-      // Mock update for demo - replace with real API call when available
+      await api.updateDevice(editingDevice.value.id, deviceForm as Device)
       ElMessage.success('Cập nhật thiết bị thành công')
     } else {
-      // Mock create for demo - replace with real API call when available
-      ElMessage.success('Thêm thiết bị thành công')
+      await api.createDevice(deviceForm as Device)
+      ElMessage.success('Tạo thiết bị thành công')
     }
     
     showCreateDialog.value = false
-    resetForm()
+    resetDeviceForm()
     loadDevices()
   } catch (error: any) {
-    ElMessage.error('Lỗi khi lưu thiết bị')
+    console.error('Save device error:', error)
+    ElMessage.error('Có lỗi xảy ra khi lưu thiết bị')
+  } finally {
+    saving.value = false
   }
 }
 
-const resetForm = () => {
+// Reset form
+function resetDeviceForm() {
   editingDevice.value = null
-  deviceForm.value = {
+  Object.assign(deviceForm, {
     name: '',
-    type: '',
+    device_code: '',
+    category: '',
     location: '',
+    brand: '',
+    model: '',
+    installation_date: '',
     status: '',
-    description: ''
-  }
+    specifications: '',
+    notes: ''
+  })
   deviceFormRef.value?.resetFields()
 }
 
-const handleSizeChange = (size: number) => {
+// Pagination handlers
+function handleSizeChange(size: number) {
   pageSize.value = size
   currentPage.value = 1
   loadDevices()
 }
 
-const handleCurrentChange = (page: number) => {
+function handleCurrentChange(page: number) {
   currentPage.value = page
   loadDevices()
 }
@@ -381,20 +613,47 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.page-header h1 {
+.page-header h2 {
   margin: 0;
   color: #303133;
 }
 
-.maintenance-info {
-  font-size: 12px;
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
-.maintenance-date {
-  margin-bottom: 4px;
+.filter-card {
+  margin-bottom: 20px;
 }
 
-.maintenance-date:last-child {
-  margin-bottom: 0;
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
-</style> 
+
+.pagination-wrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.device-detail {
+  .detail-item {
+    margin-bottom: 16px;
+  }
+
+  .detail-item label {
+    font-weight: 600;
+    color: #606266;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .detail-item p {
+    margin: 0;
+    color: #303133;
+  }
+}
+</style>

@@ -11,14 +11,18 @@ class Device extends Model
 
     protected $fillable = [
         'name',
-        'device_code',
-        'category',
+        'type',
         'location',
+        'status',
+        'description',
+        'last_maintenance',
+        'next_maintenance',
+        'device_code',
+        'category', 
         'brand',
         'model',
         'installation_date',
         'warranty_expiry',
-        'status',
         'specifications',
         'notes',
         'responsible_technician',
@@ -27,6 +31,8 @@ class Device extends Model
     protected $casts = [
         'installation_date' => 'date',
         'warranty_expiry' => 'date',
+        'last_maintenance' => 'date',
+        'next_maintenance' => 'date',
     ];
 
     public function technician()

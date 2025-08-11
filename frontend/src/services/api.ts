@@ -238,6 +238,19 @@ class ApiService {
     return response.data
   }
 
+  async deleteNotification(id: number): Promise<ApiResponse<null>> {
+    console.log('API deleteNotification called for ID:', id)
+    
+    try {
+      const response = await this.api.delete(`/notifications/${id}`)
+      console.log('Delete notification response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API deleteNotification error:', error)
+      throw error
+    }
+  }
+
   // Feedback endpoints
   async getFeedbacks(params?: any): Promise<PaginatedResponse<Feedback>> {
     console.log('API getFeedbacks called with params:', params)
@@ -298,6 +311,32 @@ class ApiService {
     return response.data
   }
 
+  async updateInvoice(id: number, invoiceData: Partial<Invoice>): Promise<ApiResponse<Invoice>> {
+    console.log('API updateInvoice called', { id, invoiceData })
+    
+    try {
+      const response = await this.api.put(`/invoices/${id}`, invoiceData)
+      console.log('Update invoice response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API updateInvoice error:', error)
+      throw error
+    }
+  }
+
+  async deleteInvoice(id: number): Promise<ApiResponse<null>> {
+    console.log('API deleteInvoice called for ID:', id)
+    
+    try {
+      const response = await this.api.delete(`/invoices/${id}`)
+      console.log('Delete invoice response:', response)
+      return response.data
+    } catch (error: any) {
+      console.error('API deleteInvoice error:', error)
+      throw error
+    }
+  }
+
   async bulkCreateInvoices(invoicesData: Partial<Invoice>[]): Promise<ApiResponse<Invoice[]>> {
     const response = await this.api.post('/invoices/bulk-create', { invoices: invoicesData })
     return response.data
@@ -323,8 +362,43 @@ class ApiService {
     }
   }
 
+  async getPayment(id: number): Promise<ApiResponse<Payment>> {
+    const response = await this.api.get(`/payments/${id}`)
+    return response.data
+  }
+
   async createPayment(paymentData: Partial<Payment>): Promise<ApiResponse<Payment>> {
     const response = await this.api.post('/payments', paymentData)
+    return response.data
+  }
+
+  async updatePayment(id: number, paymentData: Partial<Payment>): Promise<ApiResponse<Payment>> {
+    const response = await this.api.put(`/payments/${id}`, paymentData)
+    return response.data
+  }
+
+  async deletePayment(id: number): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/payments/${id}`)
+    return response.data
+  }
+
+  async processPayment(id: number): Promise<ApiResponse<Payment>> {
+    const response = await this.api.post(`/payments/${id}/process`)
+    return response.data
+  }
+
+  async getPaymentsByInvoice(invoiceId: number): Promise<ApiResponse<Payment[]>> {
+    const response = await this.api.get(`/payments/invoice/${invoiceId}`)
+    return response.data
+  }
+
+  async getMyPayments(): Promise<ApiResponse<Payment[]>> {
+    const response = await this.api.get('/payments/my-payments')
+    return response.data
+  }
+
+  async getPaymentStats(params?: any): Promise<ApiResponse<any>> {
+    const response = await this.api.get('/payments/stats', { params })
     return response.data
   }
 
@@ -334,8 +408,23 @@ class ApiService {
     return response.data
   }
 
+  async getDevice(id: number): Promise<ApiResponse<Device>> {
+    const response = await this.api.get(`/devices/${id}`)
+    return response.data
+  }
+
   async createDevice(deviceData: Partial<Device>): Promise<ApiResponse<Device>> {
     const response = await this.api.post('/devices', deviceData)
+    return response.data
+  }
+
+  async updateDevice(id: number, deviceData: Partial<Device>): Promise<ApiResponse<Device>> {
+    const response = await this.api.put(`/devices/${id}`, deviceData)
+    return response.data
+  }
+
+  async deleteDevice(id: number): Promise<ApiResponse<null>> {
+    const response = await this.api.delete(`/devices/${id}`)
     return response.data
   }
 
@@ -345,19 +434,54 @@ class ApiService {
     return response.data
   }
 
+  async getMaintenance(id: number): Promise<ApiResponse<Maintenance>> {
+    const response = await this.api.get(`/maintenances/${id}`)
+    console.log('getMaintenance raw response:', response.data)
+    return response.data
+  }
+
   async createMaintenance(maintenanceData: Partial<Maintenance>): Promise<ApiResponse<Maintenance>> {
     const response = await this.api.post('/maintenances', maintenanceData)
+    console.log('createMaintenance raw response:', response.data)
+    return response.data
+  }
+
+  async updateMaintenance(id: number, maintenanceData: Partial<Maintenance>): Promise<ApiResponse<Maintenance>> {
+    const response = await this.api.put(`/maintenances/${id}`, maintenanceData)
+    console.log('updateMaintenance raw response:', response.data)
+    return response.data
+  }
+
+  async deleteMaintenance(id: number): Promise<ApiResponse<any>> {
+    const response = await this.api.delete(`/maintenances/${id}`)
+    console.log('deleteMaintenance raw response:', response.data)
     return response.data
   }
 
   // Event endpoints
   async getEvents(params?: any): Promise<PaginatedResponse<Event>> {
     const response = await this.api.get('/events', { params })
+    console.log('getEvents response:', response.data)
+    return response.data
+  }
+
+  async getEvent(id: number): Promise<ApiResponse<Event>> {
+    const response = await this.api.get(`/events/${id}`)
     return response.data
   }
 
   async createEvent(eventData: Partial<Event>): Promise<ApiResponse<Event>> {
     const response = await this.api.post('/events', eventData)
+    return response.data
+  }
+
+  async updateEvent(id: number, eventData: Partial<Event>): Promise<ApiResponse<Event>> {
+    const response = await this.api.put(`/events/${id}`, eventData)
+    return response.data
+  }
+
+  async deleteEvent(id: number): Promise<ApiResponse<any>> {
+    const response = await this.api.delete(`/events/${id}`)
     return response.data
   }
 
@@ -367,8 +491,23 @@ class ApiService {
     return response.data
   }
 
+  async getVote(id: number): Promise<ApiResponse<Vote>> {
+    const response = await this.api.get(`/votes/${id}`)
+    return response.data
+  }
+
   async createVote(voteData: Partial<Vote>): Promise<ApiResponse<Vote>> {
     const response = await this.api.post('/votes', voteData)
+    return response.data
+  }
+
+  async updateVote(id: number, voteData: Partial<Vote>): Promise<ApiResponse<Vote>> {
+    const response = await this.api.put(`/votes/${id}`, voteData)
+    return response.data
+  }
+
+  async deleteVote(id: number): Promise<ApiResponse<any>> {
+    const response = await this.api.delete(`/votes/${id}`)
     return response.data
   }
 
