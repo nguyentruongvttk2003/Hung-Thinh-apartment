@@ -270,3 +270,5 @@ Nếu gặp vấn đề, vui lòng:
 2. Kiểm tra documentation
 3. Tạo issue trên repository
 4. Liên hệ support team 
+ C:\Users\Hoang_Hai\OneDrive\Máy tính\Management Infomation Aparterment> cd "c:\Users\Hoang_Hai\OneDrive\Máy tính\Management Infomation Aparterment"
+>> .\gradlew.bat :android-app:clean :android-app:assembleDebug

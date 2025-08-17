@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\VoteController;
+use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\AmenityBookingController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\FileUploadController;
@@ -291,6 +293,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::apiResource('invoices', InvoiceController::class);
     Route::get('invoices/apartment/{apartment}', [InvoiceController::class, 'byApartment']);
     Route::post('invoices/bulk-create', [InvoiceController::class, 'bulkCreate']);
+    // Invoice QR payload for payments
+    Route::get('invoices/{invoice}/qr', [InvoiceController::class, 'qrPayload']);
 
     // Payments
     Route::get('payments/stats', [PaymentController::class, 'stats']);
@@ -319,6 +323,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('votes/{vote}/vote', [VoteController::class, 'submitVote']);
     Route::get('votes/{vote}/results', [VoteController::class, 'results']);
     Route::apiResource('votes', VoteController::class);
+
+    // Amenities and bookings (resident utilities)
+    Route::apiResource('amenities', AmenityController::class)->only(['index', 'show']);
+    Route::get('amenities/{amenity}/availability', [AmenityController::class, 'availability']);
+    Route::get('amenity-bookings/mine', [AmenityBookingController::class, 'myBookings']);
+    Route::apiResource('amenity-bookings', AmenityBookingController::class)->only(['index','store','show','destroy']);
 
     // Search routes
     Route::get('search/global', [SearchController::class, 'globalSearch']);

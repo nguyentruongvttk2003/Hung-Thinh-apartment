@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices - Apartment Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 20px 16px;
+            border-radius: 0 0 20px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            margin: 20px 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #1976d2;
+        }
+
+        .stat-card.paid {
+            border-left-color: #4caf50;
+        }
+
+        .stat-card.pending {
+            border-left-color: #ff9800;
+        }
+
+        .stat-card.overdue {
+            border-left-color: #f44336;
+        }
+
+        .stat-card.total {
+            border-left-color: #9c27b0;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-card.paid .stat-number { color: #4caf50; }
+        .stat-card.pending .stat-number { color: #ff9800; }
+        .stat-card.overdue .stat-number { color: #f44336; }
+        .stat-card.total .stat-number { color: #9c27b0; }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Search and Filter */
+        .search-section {
+            background: white;
+            margin: 0 16px 20px 16px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            background: #fafafa;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .filter-btn.active {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .filter-btn:hover {
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        /* Invoices List */
+        .invoices-section {
+            margin: 0 16px 20px 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .add-btn:hover {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
+
+        .invoice-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #1976d2;
+        }
+
+        .invoice-card.paid {
+            border-left-color: #4caf50;
+        }
+
+        .invoice-card.pending {
+            border-left-color: #ff9800;
+        }
+
+        .invoice-card.overdue {
+            border-left-color: #f44336;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .invoice-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .invoice-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-paid {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-overdue {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .detail-icon {
+            width: 16px;
+            height: 16px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .invoice-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            color: #666;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .action-btn.primary {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .action-btn.primary:hover {
+            background: #1565c0;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(25, 118, 210, 0.3);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .header {
+                padding: 16px 12px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .quick-stats {
+                margin: 16px 12px;
+                gap: 8px;
+            }
+            
+            .search-section {
+                margin: 0 12px 16px 12px;
+                padding: 12px;
+            }
+            
+            .invoices-section {
+                margin: 0 12px 16px 12px;
+            }
+            
+            .invoice-card {
+                padding: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .fab {
+                bottom: 16px;
+                right: 16px;
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+        }
+
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>💰 Quản lý Hóa đơn</h1>
+            <p>Theo dõi và quản lý tất cả hóa đơn</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card total">
+                <div class="stat-number">24</div>
+                <div class="stat-label">Tổng hóa đơn</div>
+            </div>
+            <div class="stat-card paid">
+                <div class="stat-number">18</div>
+                <div class="stat-label">Đã thanh toán</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-number">4</div>
+                <div class="stat-label">Chờ thanh toán</div>
+            </div>
+            <div class="stat-card overdue">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Quá hạn</div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-section">
+            <input type="text" class="search-input" placeholder="🔍 Tìm kiếm hóa đơn...">
+            <div class="filter-buttons">
+                <button class="filter-btn active">Tất cả</button>
+                <button class="filter-btn">Đã thanh toán</button>
+                <button class="filter-btn">Chờ thanh toán</button>
+                <button class="filter-btn">Quá hạn</button>
+            </div>
+        </div>
+
+        <!-- Invoices List -->
+        <div class="invoices-section">
+            <div class="section-header">
+                <h2 class="section-title">Danh sách Hóa đơn</h2>
+                <button class="add-btn">
+                    <span>➕</span>
+                    Tạo mới
+                </button>
+            </div>
+
+            <!-- Invoice Card 1 -->
+            <div class="invoice-card paid">
+                <div class="invoice-header">
+                    <div>
+                        <div class="invoice-title">Hóa đơn tháng 12 - A101</div>
+                        <div class="invoice-subtitle">Tiền phòng + Điện nước</div>
+                    </div>
+                    <span class="status-badge status-paid">Đã thanh toán</span>
+                </div>
+                <div class="invoice-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Nguyễn Văn A</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">💰</div>
+                        <span>8.5 triệu VNĐ</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Hạn: 15/12/2024</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">✅</div>
+                        <span>Đã thanh toán: 10/12</span>
+                    </div>
+                </div>
+                <div class="invoice-actions">
+                    <button class="action-btn">📄 Xem chi tiết</button>
+                    <button class="action-btn">📧 Gửi lại</button>
+                    <button class="action-btn primary">💳 Thanh toán</button>
+                </div>
+            </div>
+
+            <!-- Invoice Card 2 -->
+            <div class="invoice-card pending">
+                <div class="invoice-header">
+                    <div>
+                        <div class="invoice-title">Hóa đơn tháng 12 - A102</div>
+                        <div class="invoice-subtitle">Tiền phòng + Điện nước</div>
+                    </div>
+                    <span class="status-badge status-pending">Chờ thanh toán</span>
+                </div>
+                <div class="invoice-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Trần Thị B</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">💰</div>
+                        <span>7.2 triệu VNĐ</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Hạn: 15/12/2024</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">⏰</div>
+                        <span>Còn 3 ngày</span>
+                    </div>
+                </div>
+                <div class="invoice-actions">
+                    <button class="action-btn">📄 Xem chi tiết</button>
+                    <button class="action-btn">📧 Nhắc nhở</button>
+                    <button class="action-btn primary">💳 Thanh toán</button>
+                </div>
+            </div>
+
+            <!-- Invoice Card 3 -->
+            <div class="invoice-card overdue">
+                <div class="invoice-header">
+                    <div>
+                        <div class="invoice-title">Hóa đơn tháng 11 - A201</div>
+                        <div class="invoice-subtitle">Tiền phòng + Điện nước</div>
+                    </div>
+                    <span class="status-badge status-overdue">Quá hạn</span>
+                </div>
+                <div class="invoice-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Lê Văn C</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">💰</div>
+                        <span>9.1 triệu VNĐ</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Hạn: 15/11/2024</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">⚠️</div>
+                        <span>Quá hạn 30 ngày</span>
+                    </div>
+                </div>
+                <div class="invoice-actions">
+                    <button class="action-btn">📄 Xem chi tiết</button>
+                    <button class="action-btn">📞 Liên hệ</button>
+                    <button class="action-btn primary">💳 Thanh toán</button>
+                </div>
+            </div>
+
+            <!-- Invoice Card 4 -->
+            <div class="invoice-card pending">
+                <div class="invoice-header">
+                    <div>
+                        <div class="invoice-title">Hóa đơn tháng 12 - A202</div>
+                        <div class="invoice-subtitle">Tiền phòng + Điện nước</div>
+                    </div>
+                    <span class="status-badge status-pending">Chờ thanh toán</span>
+                </div>
+                <div class="invoice-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Phạm Thị D</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">💰</div>
+                        <span>8.8 triệu VNĐ</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Hạn: 15/12/2024</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">⏰</div>
+                        <span>Còn 5 ngày</span>
+                    </div>
+                </div>
+                <div class="invoice-actions">
+                    <button class="action-btn">📄 Xem chi tiết</button>
+                    <button class="action-btn">📧 Nhắc nhở</button>
+                    <button class="action-btn primary">💳 Thanh toán</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab">➕</button>
+    </div>
+</body>
+</html>

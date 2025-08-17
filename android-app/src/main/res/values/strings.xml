@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hưng Thịnh Apartment</string>
+    
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Hủy</string>
+    <string name="yes">Có</string>
+    <string name="no">Không</string>
+    <string name="save">Lưu</string>
+    <string name="delete">Xóa</string>
+    <string name="edit">Chỉnh sửa</string>
+    <string name="view">Xem</string>
+    <string name="search">Tìm kiếm</string>
+    <string name="filter">Lọc</string>
+    <string name="sort">Sắp xếp</string>
+    <string name="refresh">Làm mới</string>
+    <string name="loading">Đang tải...</string>
+    <string name="retry">Thử lại</string>
+    <string name="error_occurred">Đã có lỗi xảy ra</string>
+    <string name="no_data">Không có dữ liệu</string>
+    <string name="coming_soon">Tính năng sắp ra mắt</string>
+    
+    <!-- Authentication -->
+    <string name="login">Đăng nhập</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="register">Đăng ký</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="login_success">Đăng nhập thành công!</string>
+    <string name="login_failed">Đăng nhập thất bại</string>
+    <string name="logout_confirmation">Bạn có chắc muốn đăng xuất?</string>
+    <string name="invalid_email">Email không hợp lệ</string>
+    <string name="password_too_short">Mật khẩu phải có ít nhất 6 ký tự</string>
+    <string name="field_required">Trường này bắt buộc</string>
+    
+    <!-- Navigation -->
+    <string name="dashboard">Tổng quan</string>
+    <string name="account">Tài khoản</string>
+    <string name="apartments">Căn hộ</string>
+    <string name="invoices">Hóa đơn</string>
+    <string name="payments">Thanh toán</string>
+    <string name="feedbacks">Phản hồi</string>
+    <string name="events">Sự kiện</string>
+    <string name="notifications">Thông báo</string>
+    <string name="profile">Hồ sơ</string>
+    <string name="settings">Cài đặt</string>
+    
+    <!-- Dashboard -->
+    <string name="welcome_back">Chào mừng bạn trở lại!</string>
+    <string name="quick_actions">Thao tác nhanh</string>
+    <string name="statistics">Thống kê</string>
+    <string name="recent_activities">Hoạt động gần đây</string>
+    <string name="upcoming_events">Sự kiện sắp tới</string>
+    <string name="see_all">Xem tất cả</string>
+    <string name="pending_feedbacks">Phản hồi chờ xử lý</string>
+    <string name="overdue_invoices">Hóa đơn quá hạn</string>
+    
+    <!-- Apartments -->
+    <string name="apartment_number">Số căn hộ</string>
+    <string name="block">Block</string>
+    <string name="floor">Tầng</string>
+    <string name="area">Diện tích</string>
+    <string name="bedrooms">Phòng ngủ</string>
+    <string name="apartment_type">Loại căn hộ</string>
+    <string name="apartment_status">Trạng thái</string>
+    <string name="owner">Chủ hộ</string>
+    <string name="residents">Cư dân</string>
+    <string name="apartment_details">Chi tiết căn hộ</string>
+    <string name="apartment_info">Thông tin căn hộ</string>
+    <string name="resident_info">Thông tin cư dân</string>
+    
+    <!-- Apartment Status -->
+    <string name="status_occupied">Đã có người ở</string>
+    <string name="status_vacant">Trống</string>
+    <string name="status_maintenance">Bảo trì</string>
+    <string name="status_reserved">Đã đặt trước</string>
+    
+    <!-- Apartment Types -->
+    <string name="type_studio">Studio</string>
+    <string name="type_1br">1 phòng ngủ</string>
+    <string name="type_2br">2 phòng ngủ</string>
+    <string name="type_3br">3 phòng ngủ</string>
+    <string name="type_penthouse">Penthouse</string>
+    
+    <!-- Invoices -->
+    <string name="invoice_number">Số hóa đơn</string>
+    <string name="billing_period">Kỳ thanh toán</string>
+    <string name="due_date">Hạn thanh toán</string>
+    <string name="total_amount">Tổng tiền</string>
+    <string name="paid_amount">Đã thanh toán</string>
+    <string name="outstanding_amount">Còn lại</string>
+    <string name="management_fee">Phí quản lý</string>
+    <string name="electricity_fee">Tiền điện</string>
+    <string name="water_fee">Tiền nước</string>
+    <string name="parking_fee">Phí gửi xe</string>
+    <string name="other_fees">Phí khác</string>
+    <string name="payment_history">Lịch sử thanh toán</string>
+    <string name="make_payment">Thanh toán</string>
+    <string name="payment_success">Thanh toán thành công!</string>
+    <string name="payment_failed">Thanh toán thất bại</string>
+    
+    <!-- Invoice Status -->
+    <string name="invoice_pending">Chờ thanh toán</string>
+    <string name="invoice_partial">Thanh toán một phần</string>
+    <string name="invoice_paid">Đã thanh toán</string>
+    <string name="invoice_overdue">Quá hạn</string>
+    <string name="invoice_cancelled">Đã hủy</string>
+    
+    <!-- Payment Methods -->
+    <string name="payment_method">Phương thức thanh toán</string>
+    <string name="cash">Tiền mặt</string>
+    <string name="bank_transfer">Chuyển khoản</string>
+    <string name="credit_card">Thẻ tín dụng</string>
+    <string name="debit_card">Thẻ ghi nợ</string>
+    <string name="momo">MoMo</string>
+    <string name="zalopay">ZaloPay</string>
+    <string name="vnpay">VNPay</string>
+    
+    <!-- Feedbacks -->
+    <string name="feedback_title">Tiêu đề</string>
+    <string name="feedback_content">Nội dung</string>
+    <string name="feedback_type">Loại phản hồi</string>
+    <string name="feedback_priority">Độ ưu tiên</string>
+    <string name="feedback_status">Trạng thái</string>
+    <string name="assigned_to">Phân công cho</string>
+    <string name="resolution_notes">Ghi chú giải quyết</string>
+    <string name="rating">Đánh giá</string>
+    <string name="submit_feedback">Gửi phản hồi</string>
+    <string name="feedback_submitted">Phản hồi đã được gửi</string>
+    
+    <!-- Feedback Types -->
+    <string name="type_maintenance">Bảo trì</string>
+    <string name="type_complaint">Khiếu nại</string>
+    <string name="type_suggestion">Góp ý</string>
+    <string name="type_inquiry">Thắc mắc</string>
+    <string name="type_emergency">Khẩn cấp</string>
+    
+    <!-- Feedback Priority -->
+    <string name="priority_low">Thấp</string>
+    <string name="priority_normal">Bình thường</string>
+    <string name="priority_high">Cao</string>
+    <string name="priority_urgent">Khẩn cấp</string>
+    
+    <!-- Feedback Status -->
+    <string name="feedback_pending">Chờ xử lý</string>
+    <string name="feedback_in_progress">Đang xử lý</string>
+    <string name="feedback_resolved">Đã giải quyết</string>
+    <string name="feedback_closed">Đã đóng</string>
+    <string name="feedback_cancelled">Đã hủy</string>
+    
+    <!-- Events -->
+    <string name="event_title">Tiêu đề sự kiện</string>
+    <string name="event_description">Mô tả</string>
+    <string name="event_type">Loại sự kiện</string>
+    <string name="event_location">Địa điểm</string>
+    <string name="start_time">Thời gian bắt đầu</string>
+    <string name="end_time">Thời gian kết thúc</string>
+    <string name="event_status">Trạng thái sự kiện</string>
+    <string name="event_details">Chi tiết sự kiện</string>
+    
+    <!-- Event Types -->
+    <string name="event_meeting">Họp</string>
+    <string name="event_maintenance">Bảo trì</string>
+    <string name="event_announcement">Thông báo</string>
+    <string name="event_social">Xã hội</string>
+    <string name="event_emergency">Khẩn cấp</string>
+    <string name="event_other">Khác</string>
+    
+    <!-- Event Status -->
+    <string name="event_scheduled">Đã lên lịch</string>
+    <string name="event_ongoing">Đang diễn ra</string>
+    <string name="event_completed">Hoàn thành</string>
+    <string name="event_cancelled">Đã hủy</string>
+    
+    <!-- Notifications -->
+    <string name="mark_as_read">Đánh dấu đã đọc</string>
+    <string name="mark_all_as_read">Đánh dấu tất cả đã đọc</string>
+    <string name="unread_notifications">Thông báo chưa đọc</string>
+    <string name="all_notifications">Tất cả thông báo</string>
+    
+    <!-- Profile -->
+    <string name="personal_info">Thông tin cá nhân</string>
+    <string name="name">Họ tên</string>
+    <string name="phone">Số điện thoại</string>
+    <string name="role">Vai trò</string>
+    <string name="change_password">Đổi mật khẩu</string>
+    <string name="current_password">Mật khẩu hiện tại</string>
+    <string name="new_password">Mật khẩu mới</string>
+    <string name="profile_updated">Hồ sơ đã được cập nhật</string>
+    <string name="password_changed">Mật khẩu đã được thay đổi</string>
+    
+    <!-- User Roles -->
+    <string name="role_admin">Quản trị viên</string>
+    <string name="role_resident">Cư dân</string>
+    <string name="role_accountant">Kế toán</string>
+    <string name="role_technician">Kỹ thuật viên</string>
+    
+    <!-- Settings -->
+    <string name="app_settings">Cài đặt ứng dụng</string>
+    <string name="theme">Giao diện</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="notifications_settings">Cài đặt thông báo</string>
+    <string name="about">Thông tin ứng dụng</string>
+    <string name="version">Phiên bản</string>
+    <string name="contact_support">Liên hệ hỗ trợ</string>
+    
+    <!-- Error Messages -->
+    <string name="network_error">Lỗi kết nối mạng</string>
+    <string name="server_error">Lỗi máy chủ</string>
+    <string name="authentication_error">Lỗi xác thực</string>
+    <string name="permission_denied">Không có quyền truy cập</string>
+    <string name="data_not_found">Không tìm thấy dữ liệu</string>
+    <string name="invalid_input">Dữ liệu không hợp lệ</string>
+    <string name="operation_failed">Thao tác thất bại</string>
+    
+    <!-- Success Messages -->
+    <string name="operation_success">Thao tác thành công</string>
+    <string name="data_saved">Dữ liệu đã được lưu</string>
+    <string name="data_deleted">Dữ liệu đã được xóa</string>
+    <string name="data_updated">Dữ liệu đã được cập nhật</string>
+    
+    <!-- Confirmation Messages -->
+    <string name="confirm_delete">Bạn có chắc muốn xóa?</string>
+    <string name="confirm_logout">Bạn có chắc muốn đăng xuất?</string>
+    <string name="unsaved_changes">Có thay đổi chưa được lưu. Bạn có muốn tiếp tục?</string>
+    
+    <!-- Date and Time -->
+    <string name="today">Hôm nay</string>
+    <string name="yesterday">Hôm qua</string>
+    <string name="tomorrow">Ngày mai</string>
+    <string name="this_week">Tuần này</string>
+    <string name="this_month">Tháng này</string>
+    <string name="select_date">Chọn ngày</string>
+    <string name="select_time">Chọn giờ</string>
+    
+    <!-- Currency -->
+    <string name="currency_vnd">VNĐ</string>
+    <string name="currency_format">%,.0f VNĐ</string>
+    
+    <!-- Units -->
+    <string name="square_meter">m²</string>
+    <string name="unit_kwh">kWh</string>
+    <string name="unit_m3">m³</string>
+    
+    <!-- Content Descriptions for Accessibility -->
+    <string name="cd_app_logo">Logo ứng dụng</string>
+    <string name="cd_user_avatar">Ảnh đại diện người dùng</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_search">Tìm kiếm</string>
+    <string name="cd_filter">Lọc</string>
+    <string name="cd_more_options">Tùy chọn khác</string>
+    <string name="cd_back">Quay lại</string>
+    <string name="cd_close">Đóng</string>
+    <string name="cd_edit">Chỉnh sửa</string>
+    <string name="cd_delete">Xóa</string>
+</resources>

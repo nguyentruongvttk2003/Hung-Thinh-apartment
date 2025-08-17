@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ người dùng</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* CSS Variables for easy theming */
+        :root {
+            --background-color: #f0f2f5;
+            --card-background: #ffffff;
+            --primary-color: #007bff;
+            --text-color: #333;
+            --text-secondary-color: #666;
+            --logout-color: #dc3545;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Main container, mimics <ScrollView> with padding */
+        .profile-container {
+            width: 100%;
+            max-width: 400px; /* A typical width for a mobile screen view */
+            background-color: var(--card-background);
+            border-radius: 16px;
+            padding: 24px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Mimics the outer LinearLayout's gravity */
+        .profile-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Avatar styling, mimics the <ImageView> */
+        .avatar {
+            width: 96px;
+            height: 96px;
+            background-color: var(--card-background);
+            border-radius: 50%; /* Circular avatar */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* bg_card_elevated */
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .avatar .material-icons {
+            font-size: 48px;
+            color: var(--primary-color);
+        }
+
+        /* User's name, mimics the <TextView> */
+        .display-name {
+            font-size: 24px; /* Approximating Headline3 */
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        /* Container for all menu items */
+        .menu-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Each clickable row, mimics <LinearLayout> rows */
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 8px; /* Approximating paddingVertical */
+            text-decoration: none;
+            color: var(--text-color);
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .menu-item:hover {
+            background-color: #f1f1f1; /* selectableItemBackground */
+        }
+        
+        .menu-item .icon {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-right: 16px; /* layout_marginEnd */
+        }
+
+        .menu-item .text {
+            flex-grow: 1; /* layout_weight="1" */
+            font-size: 16px; /* Approximating Body1 */
+        }
+
+        .menu-item .chevron {
+            font-size: 24px;
+            color: var(--text-secondary-color);
+        }
+        
+        /* Specific styling for the logout row */
+        .menu-item.logout .icon {
+            color: var(--logout-color);
+        }
+
+        /* Dark Theme row which is not a link */
+        .menu-item.no-hover:hover {
+            background-color: transparent;
+            cursor: default;
+        }
+
+        /* --- Custom Toggle Switch (mimics SwitchMaterial) --- */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="profile-container">
+        <div class="profile-content">
+
+            <div class="avatar">
+                <i class="material-icons">person</i>
+            </div>
+            <h2 class="display-name">Người dùng</h2>
+
+            <div class="menu-list">
+
+                <a href="#" class="menu-item">
+                    <i class="material-icons icon">person_outline</i>
+                    <span class="text">Chỉnh sửa hồ sơ</span>
+                    <i class="material-icons chevron">chevron_right</i>
+                </a>
+
+                <a href="#" class="menu-item">
+                    <i class="material-icons icon">receipt_long</i>
+                    <span class="text">Hóa đơn của tôi</span>
+                    <i class="material-icons chevron">chevron_right</i>
+                </a>
+
+                <div class="menu-item no-hover">
+                    <i class="material-icons icon">dark_mode</i>
+                    <span class="text">Chủ đề tối</span>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <a href="#" class="menu-item">
+                    <i class="material-icons icon">privacy_tip</i>
+                    <span class="text">Chính sách quyền riêng tư</span>
+                    <i class="material-icons chevron">chevron_right</i>
+                </a>
+                
+                <a href="#" class="menu-item">
+                    <i class="material-icons icon">group</i>
+                    <span class="text">Về chúng tôi</span>
+                    <i class="material-icons chevron">chevron_right</i>
+                </a>
+
+                <a href="#" class="menu-item logout">
+                    <i class="material-icons icon">logout</i>
+                    <span class="text">Đăng xuất</span>
+                    <i class="material-icons chevron">chevron_right</i>
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

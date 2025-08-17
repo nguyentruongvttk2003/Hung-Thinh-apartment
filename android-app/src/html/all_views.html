@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tất cả các giao diện - Quản lý chung cư</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            padding: 16px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        .header p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+        .views-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .view-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .view-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .view-header {
+            margin-bottom: 16px;
+        }
+        .view-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .view-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        .view-content {
+            margin-bottom: 16px;
+        }
+        .view-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .view-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+        }
+        .view-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .feature-icon {
+            font-size: 16px;
+        }
+        .view-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .special-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .special-section h2 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #3f51b5;
+        }
+        .special-section p {
+            margin: 0 0 16px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .special-section .views-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .special-section .view-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .special-section .view-icon {
+            font-size: 32px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3f51b5, #303f9f);
+            color: white;
+            border-radius: 50%;
+        }
+        .special-section .view-info {
+            flex: 1;
+        }
+        .special-section .view-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .special-section .view-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .special-section .view-link {
+            background: #3f51b5;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .special-section .view-link:hover {
+            background: #303f9f;
+            transform: translateY(-1px);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 12px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .view-card {
+                padding: 16px;
+            }
+            .view-actions {
+                flex-direction: column;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎨 Tất cả các giao diện</h1>
+            <p>Bộ sưu tập đầy đủ các giao diện HTML cho ứng dụng quản lý chung cư</p>
+        </div>
+
+        <!-- Views Grid -->
+        <div class="views-grid">
+            <!-- Dashboard View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Dashboard</div>
+                    <div class="view-subtitle">Màn hình chính với thống kê và điều hướng</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện dashboard chính hiển thị tổng quan về căn hộ, hóa đơn và hoạt động gần đây.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">📊</span> Thống kê tổng quan</li>
+                        <li><span class="feature-icon">🏠</span> Danh sách căn hộ</li>
+                        <li><span class="feature-icon">📱</span> Điều hướng nhanh</li>
+                        <li><span class="feature-icon">🔔</span> Thông báo mới</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="dashboard_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="dashboard_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apartments View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Quản lý căn hộ</div>
+                    <div class="view-subtitle">Danh sách và thông tin căn hộ</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý căn hộ với danh sách, tìm kiếm và thao tác CRUD.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">🔍</span> Tìm kiếm căn hộ</li>
+                        <li><span class="feature-icon">➕</span> Thêm căn hộ mới</li>
+                        <li><span class="feature-icon">✏️</span> Chỉnh sửa thông tin</li>
+                        <li><span class="feature-icon">📊</span> Thống kê trạng thái</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="apartments_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="apartments_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Đăng nhập</div>
+                    <div class="view-subtitle">Giao diện xác thực người dùng</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Màn hình đăng nhập với form xác thực và các tùy chọn đăng nhập.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">📧</span> Form email/mật khẩu</li>
+                        <li><span class="feature-icon">🔒</span> Xác thực bảo mật</li>
+                        <li><span class="feature-icon">📱</span> Đăng nhập mạng xã hội</li>
+                        <li><span class="feature-icon">❓</span> Quên mật khẩu</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="login_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="login_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoices View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Hóa đơn</div>
+                    <div class="view-subtitle">Quản lý hóa đơn và thanh toán</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý hóa đơn với danh sách, trạng thái và thao tác thanh toán.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">📋</span> Danh sách hóa đơn</li>
+                        <li><span class="feature-icon">💰</span> Thanh toán trực tuyến</li>
+                        <li><span class="feature-icon">📊</span> Thống kê tài chính</li>
+                        <li><span class="feature-icon">🔍</span> Tìm kiếm và lọc</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="invoices_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="invoices_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Sự kiện</div>
+                    <div class="view-subtitle">Quản lý sự kiện cộng đồng</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý sự kiện với lịch trình, đăng ký và thông báo.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">📅</span> Lịch sự kiện</li>
+                        <li><span class="feature-icon">👥</span> Đăng ký tham gia</li>
+                        <li><span class="feature-icon">📢</span> Thông báo sự kiện</li>
+                        <li><span class="feature-icon">📸</span> Hình ảnh sự kiện</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="events_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="events_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Bảo trì</div>
+                    <div class="view-subtitle">Quản lý yêu cầu bảo trì</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý bảo trì với yêu cầu, tiến độ và báo cáo.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">🔧</span> Yêu cầu bảo trì</li>
+                        <li><span class="feature-icon">📊</span> Theo dõi tiến độ</li>
+                        <li><span class="feature-icon">👨‍🔧</span> Phân công kỹ thuật</li>
+                        <li><span class="feature-icon">✅</span> Xác nhận hoàn thành</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="maintenance_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="maintenance_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Hồ sơ người dùng</div>
+                    <div class="view-subtitle">Thông tin cá nhân và cài đặt</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện hồ sơ người dùng với thông tin cá nhân và tùy chọn cài đặt.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">👤</span> Thông tin cá nhân</li>
+                        <li><span class="feature-icon">🔒</span> Bảo mật tài khoản</li>
+                        <li><span class="feature-icon">⚙️</span> Cài đặt ứng dụng</li>
+                        <li><span class="feature-icon">📊</span> Thống kê hoạt động</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="profile_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="profile_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Thông báo</div>
+                    <div class="view-subtitle">Quản lý thông báo và tin nhắn</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý thông báo với danh sách, lọc và thao tác.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">🔔</span> Danh sách thông báo</li>
+                        <li><span class="feature-icon">📱</span> Lọc theo loại</li>
+                        <li><span class="feature-icon">✅</span> Đánh dấu đã đọc</li>
+                        <li><span class="feature-icon">⚙️</span> Cài đặt thông báo</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="notifications_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="notifications_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amenities View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Tiện ích</div>
+                    <div class="view-subtitle">Quản lý tiện ích chung cư</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý tiện ích với đặt lịch, trạng thái và thông tin.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">🏊‍♂️</span> Danh sách tiện ích</li>
+                        <li><span class="feature-icon">📅</span> Đặt lịch sử dụng</li>
+                        <li><span class="feature-icon">💰</span> Thông tin giá cả</li>
+                        <li><span class="feature-icon">🔍</span> Tìm kiếm và lọc</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="amenities_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="amenities_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Thanh toán</div>
+                    <div class="view-subtitle">Quản lý thanh toán và giao dịch</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý thanh toán với lịch sử giao dịch và phương thức thanh toán.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">💳</span> Phương thức thanh toán</li>
+                        <li><span class="feature-icon">📊</span> Lịch sử giao dịch</li>
+                        <li><span class="feature-icon">💰</span> Số dư ví</li>
+                        <li><span class="feature-icon">📱</span> Nạp/rút tiền</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="payments_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="payments_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Votes View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Bình chọn</div>
+                    <div class="view-subtitle">Quản lý cuộc bình chọn cộng đồng</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý bình chọn với các cuộc thăm dò và kết quả.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">🗳️</span> Cuộc bình chọn</li>
+                        <li><span class="feature-icon">📊</span> Kết quả thời gian thực</li>
+                        <li><span class="feature-icon">⏰</span> Thời gian bình chọn</li>
+                        <li><span class="feature-icon">✅</span> Xác nhận bình chọn</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="votes_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="votes_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Phản hồi</div>
+                    <div class="view-subtitle">Quản lý đánh giá và phản hồi</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện quản lý phản hồi với đánh giá sao và bình luận.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">⭐</span> Đánh giá sao</li>
+                        <li><span class="feature-icon">💬</span> Bình luận phản hồi</li>
+                        <li><span class="feature-icon">📊</span> Thống kê đánh giá</li>
+                        <li><span class="feature-icon">📝</span> Gửi phản hồi mới</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="feedback_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="feedback_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Cài đặt</div>
+                    <div class="view-subtitle">Cài đặt ứng dụng và tùy chọn</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện cài đặt với các tùy chọn ứng dụng và bảo mật.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">🔔</span> Cài đặt thông báo</li>
+                        <li><span class="feature-icon">🎨</span> Tùy chỉnh giao diện</li>
+                        <li><span class="feature-icon">🔒</span> Bảo mật và quyền riêng tư</li>
+                        <li><span class="feature-icon">🌍</span> Ngôn ngữ và khu vực</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="settings_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="settings_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Trợ giúp</div>
+                    <div class="view-subtitle">Hướng dẫn và hỗ trợ người dùng</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Giao diện trợ giúp với FAQ, hướng dẫn và liên hệ hỗ trợ.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">❓</span> Câu hỏi thường gặp</li>
+                        <li><span class="feature-icon">📖</span> Hướng dẫn sử dụng</li>
+                        <li><span class="feature-icon">🔍</span> Tìm kiếm trợ giúp</li>
+                        <li><span class="feature-icon">📞</span> Liên hệ hỗ trợ</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="help_view.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="help_view.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popups & Modals View -->
+            <div class="view-card">
+                <div class="view-header">
+                    <div class="view-title">Popups & Modals</div>
+                    <div class="view-subtitle">Các popup và modal quan trọng</div>
+                </div>
+                <div class="view-content">
+                    <p class="view-description">
+                        Tất cả các popup, modal và dialog quan trọng của ứng dụng.
+                    </p>
+                    <ul class="view-features">
+                        <li><span class="feature-icon">➕</span> Form thêm mới</li>
+                        <li><span class="feature-icon">✏️</span> Form chỉnh sửa</li>
+                        <li><span class="feature-icon">⚠️</span> Xác nhận xóa</li>
+                        <li><span class="feature-icon">💳</span> Thanh toán</li>
+                    </ul>
+                    <div class="view-actions">
+                        <a href="popups.html" class="btn btn-primary">Xem chi tiết</a>
+                        <a href="popups.html" class="btn btn-secondary">Mở trong Figma</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                       <!-- Special Section -->
+               <div class="special-section">
+                   <h2>🎭 Hệ thống Popup</h2>
+                   <p>Bộ sưu tập popup cho các thao tác thêm, sửa, xóa</p>
+                   <div class="views-grid">
+                       <div class="view-card">
+                           <div class="view-icon">🎭</div>
+                           <div class="view-info">
+                               <h3>Hệ thống Popup</h3>
+                               <p>Popup thêm, sửa, xóa cho tất cả chức năng</p>
+                           </div>
+                           <a href="action_popups.html" class="view-link">Xem</a>
+                       </div>
+                   </div>
+               </div>
+
+               <!-- Footer -->
+               <div class="footer">
+                   <p>🎨 Tổng cộng <strong>17 giao diện</strong> sẵn sàng cho Figma</p>
+                   <p>📱 Tối ưu hóa cho khung 412x917 Android Mobile</p>
+               </div>
+    </div>
+</body>
+</html>

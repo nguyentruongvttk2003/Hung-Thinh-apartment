@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_dashboard">
+
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.management.apartment.ui.fragments.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
+        android:id="@+id/navigation_apartments"
+        android:name="com.management.apartment.ui.fragments.ApartmentsFragment"
+        tools:layout="@layout/fragment_apartments" />
+
+    <fragment
+        android:id="@+id/navigation_invoices"
+        android:name="com.management.apartment.ui.fragments.InvoicesFragment"
+        android:label="Invoices"
+        tools:layout="@layout/fragment_invoices" />
+
+    <fragment
+        android:id="@+id/navigation_community"
+        android:name="com.management.apartment.ui.fragments.CommunityFragment"
+        android:label="Community"
+        tools:layout="@layout/fragment_community" />
+
+    <fragment
+        android:id="@+id/navigation_notifications"
+        android:name="com.management.apartment.ui.notifications.NotificationsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/navigation_events"
+        android:name="com.management.apartment.ui.events.EventsFragment"
+        android:label="Events"
+        tools:layout="@layout/fragment_events" />
+
+    <fragment
+        android:id="@+id/navigation_amenities"
+        android:name="com.management.apartment.ui.amenities.AmenitiesFragment"
+        android:label="Amenities"
+        tools:layout="@layout/fragment_amenities" />
+
+    <fragment
+        android:id="@+id/navigation_votes"
+        android:name="com.management.apartment.ui.votes.VotesFragment"
+        android:label="Votes"
+        tools:layout="@layout/fragment_votes" />
+
+    <fragment
+        android:id="@+id/navigation_account"
+        android:name="com.management.apartment.ui.fragments.AccountFragment"
+        android:label="Account"
+        tools:layout="@layout/fragment_account" />
+</navigation>

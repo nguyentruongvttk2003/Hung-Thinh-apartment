@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ giúp</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .search-section {
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8f9fa;
+            box-sizing: border-box;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+        }
+        .help-categories {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px;
+        }
+        .category-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .category-card:hover {
+            transform: translateY(-2px);
+        }
+        .category-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .category-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+        .faq-section {
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        .faq-item {
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+        }
+        .faq-question {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+        .faq-question:hover {
+            background-color: #f8f9fa;
+        }
+        .faq-question-text {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        .faq-arrow {
+            color: #ccc;
+            font-size: 18px;
+            transition: transform 0.3s;
+        }
+        .faq-item.expanded .faq-arrow {
+            transform: rotate(180deg);
+        }
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        .faq-item.expanded .faq-answer {
+            padding: 16px 20px;
+            max-height: 200px;
+        }
+        .faq-answer-text {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .contact-section {
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .contact-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .contact-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .contact-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .contact-method:hover {
+            border-color: #1976d2;
+            background: #f8f9fa;
+        }
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .contact-icon.phone {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        .contact-icon.email {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .contact-icon.chat {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .contact-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: #333;
+        }
+        .contact-info p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+        .contact-arrow {
+            color: #ccc;
+            font-size: 18px;
+            margin-left: auto;
+        }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px;
+        }
+        .action-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .action-card:hover {
+            transform: translateY(-2px);
+        }
+        .action-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .action-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 12px 16px;
+            }
+            .search-section {
+                margin: 12px;
+                padding: 12px;
+            }
+            .help-categories {
+                margin: 12px;
+                gap: 8px;
+            }
+            .faq-section {
+                margin: 12px;
+            }
+            .contact-section {
+                margin: 12px;
+                padding: 16px;
+            }
+            .quick-actions {
+                margin: 12px;
+                gap: 8px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">←</button>
+                <div class="header-title">Trợ giúp</div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn">📞</button>
+                <button class="action-btn">💬</button>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <input type="text" class="search-input" placeholder="Tìm kiếm trợ giúp...">
+        </div>
+
+        <!-- Help Categories -->
+        <div class="help-categories">
+            <div class="category-card">
+                <div class="category-icon">🏠</div>
+                <div class="category-title">Quản lý căn hộ</div>
+                <div class="category-subtitle">Hướng dẫn sử dụng</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">💰</div>
+                <div class="category-title">Thanh toán</div>
+                <div class="category-subtitle">Hướng dẫn thanh toán</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🔧</div>
+                <div class="category-title">Bảo trì</div>
+                <div class="category-subtitle">Yêu cầu bảo trì</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">📱</div>
+                <div class="category-title">Ứng dụng</div>
+                <div class="category-subtitle">Sử dụng ứng dụng</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-card">
+                <div class="action-icon">📖</div>
+                <div class="action-title">Hướng dẫn</div>
+            </div>
+            <div class="action-card">
+                <div class="action-icon">❓</div>
+                <div class="action-title">FAQ</div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <div class="section-header">Câu hỏi thường gặp</div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Làm thế nào để đăng ký căn hộ?</div>
+                    <div class="faq-arrow">▼</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        Để đăng ký căn hộ, bạn cần liên hệ với ban quản lý chung cư hoặc truy cập vào mục "Đăng ký căn hộ" trong ứng dụng. Bạn sẽ cần cung cấp các thông tin cá nhân và giấy tờ cần thiết.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Cách thanh toán hóa đơn điện nước?</div>
+                    <div class="faq-arrow">▼</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        Bạn có thể thanh toán hóa đơn điện nước thông qua ứng dụng bằng cách chọn mục "Thanh toán" > "Hóa đơn điện nước" và chọn phương thức thanh toán phù hợp như thẻ ATM, chuyển khoản hoặc ví điện tử.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Làm sao để báo cáo sự cố?</div>
+                    <div class="faq-arrow">▼</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        Để báo cáo sự cố, bạn có thể sử dụng mục "Bảo trì" trong ứng dụng. Chọn "Báo cáo sự cố", mô tả chi tiết vấn đề và gửi yêu cầu. Nhân viên kỹ thuật sẽ liên hệ với bạn trong thời gian sớm nhất.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Cách đặt tiện ích chung cư?</div>
+                    <div class="faq-arrow">▼</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        Để đặt tiện ích chung cư, truy cập mục "Tiện ích" trong ứng dụng. Chọn tiện ích bạn muốn sử dụng, kiểm tra lịch trống và đặt lịch. Bạn sẽ nhận được xác nhận qua email hoặc thông báo trong ứng dụng.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Làm thế nào để thay đổi thông tin cá nhân?</div>
+                    <div class="faq-arrow">▼</div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-text">
+                        Để thay đổi thông tin cá nhân, vào mục "Hồ sơ" > "Chỉnh sửa hồ sơ". Bạn có thể cập nhật thông tin liên hệ, địa chỉ và các thông tin khác. Những thay đổi sẽ được cập nhật sau khi xác nhận.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="contact-section">
+            <div class="contact-title">Liên hệ hỗ trợ</div>
+            <div class="contact-methods">
+                <div class="contact-method">
+                    <div class="contact-icon phone">📞</div>
+                    <div class="contact-info">
+                        <h4>Gọi điện thoại</h4>
+                        <p>1900 1234 - Hỗ trợ 24/7</p>
+                    </div>
+                    <div class="contact-arrow">›</div>
+                </div>
+                <div class="contact-method">
+                    <div class="contact-icon email">📧</div>
+                    <div class="contact-info">
+                        <h4>Gửi email</h4>
+                        <p>support@chungcu.com</p>
+                    </div>
+                    <div class="contact-arrow">›</div>
+                </div>
+                <div class="contact-method">
+                    <div class="contact-icon chat">💬</div>
+                    <div class="contact-info">
+                        <h4>Chat trực tuyến</h4>
+                        <p>Hỗ trợ qua chat</p>
+                    </div>
+                    <div class="contact-arrow">›</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // FAQ functionality
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', function() {
+                const faqItem = this.closest('.faq-item');
+                const isExpanded = faqItem.classList.contains('expanded');
+                
+                // Close all FAQ items
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('expanded');
+                });
+                
+                // Open clicked item if it wasn't expanded
+                if (!isExpanded) {
+                    faqItem.classList.add('expanded');
+                }
+            });
+        });
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.faq-item').forEach(item => {
+                const question = item.querySelector('.faq-question-text').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer-text').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Category card functionality
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const category = this.querySelector('.category-title').textContent;
+                alert(`Bạn đã chọn: ${category}`);
+            });
+        });
+
+        // Contact method functionality
+        document.querySelectorAll('.contact-method').forEach(method => {
+            method.addEventListener('click', function() {
+                const methodType = this.querySelector('h4').textContent;
+                alert(`Liên hệ qua: ${methodType}`);
+            });
+        });
+    </script>
+</body>
+</html>

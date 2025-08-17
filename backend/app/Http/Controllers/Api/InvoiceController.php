@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
@@ -200,5 +201,45 @@ class InvoiceController extends Controller
         $apartmentIds = $user->residences()->pluck('apartment_id');
         $invoices = Invoice::whereIn('apartment_id', $apartmentIds)->latest()->get();
         return response()->json($invoices);
+    }
+
+    /**
+     * Generate QR payload for invoice payment
+     */
+    public function qrPayload($id)
+    {
+        $invoice = Invoice::with('apartment')->findOrFail($id);
+        $user = auth()->user();
+
+        // Create a pending payment record if not exists for this intent (idempotent by invoice + user + method)
+        $payment = Payment::firstOrCreate([
+            'invoice_id' => $invoice->id,
+            'user_id' => $user->id,
+            'status' => 'pending',
+            'payment_method' => 'qr_code',
+        ], [
+            'amount' => $invoice->total_amount - ($invoice->paid_amount ?? 0),
+            'payment_number' => 'PAY-' . date('Y') . '-' . str_pad(Payment::count() + 1, 6, '0', STR_PAD_LEFT),
+        ]);
+
+        // Simple VNPay-like payload (demo). Mobile app will render QR from this string
+        $payload = [
+            'merchant' => 'HT_APT_MGMT',
+            'invoice' => $invoice->invoice_number,
+            'amount' => (int) round($payment->amount),
+            'currency' => 'VND',
+            'description' => 'Thanh toan hoa don ' . $invoice->invoice_number,
+            'reference' => $payment->payment_number,
+            'callback' => url('/api/payments/' . $payment->id . '/process'),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'payment_id' => $payment->id,
+                'qr_string' => http_build_query($payload),
+                'payload' => $payload,
+            ],
+        ]);
     }
 }

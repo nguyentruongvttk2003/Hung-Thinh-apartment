@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #f0f2f5;
+            --primary-color: #007bff;
+            --text-color: #333;
+            --card-background: #ffffff;
+            --border-color: #dee2e6;
+            --nav-icon-color: #888;
+            --active-nav-bg: #e0e9f5;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            padding: 16px;
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 16px;
+        }
+
+        .community-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .community-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-card {
+            display: flex;
+            align-items: center;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .option-card:hover {
+            background-color: #f8f9fa;
+        }
+
+        .option-card .material-icons {
+            margin-right: 16px;
+            color: var(--primary-color);
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--nav-icon-color);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 16px;
+        }
+
+        .nav-item .material-icons {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            background-color: var(--active-nav-bg);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <h2 class="community-title">Cộng đồng</h2>
+
+        <div class="community-options">
+            <div class="option-card">
+                <i class="material-icons">star_outline</i>
+                <span>Góp ý</span>
+            </div>
+            <div class="option-card">
+                <i class="material-icons">info_outline</i>
+                <span>Sự kiện</span>
+            </div>
+            <div class="option-card">
+                <i class="material-icons">business</i>
+                <span>Tiện ích (đặt chỗ)</span>
+            </div>
+            <div class="option-card">
+                <i class="material-icons">star_outline</i>
+                <span>Biểu quyết</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item">
+            <i class="material-icons">apps</i>
+        </div>
+        <div class="nav-item">
+            <i class="material-icons">business</i>
+        </div>
+        <div class="nav-item">
+            <i class="material-icons">description</i>
+        </div>
+        <div class="nav-item active">
+            <i class="material-icons">people_outline</i>
+            <span>Cộng đồng</span>
+        </div>
+        <div class="nav-item">
+            <i class="material-icons">share</i>
+        </div>
+    </div>
+
+</body>
+</html>

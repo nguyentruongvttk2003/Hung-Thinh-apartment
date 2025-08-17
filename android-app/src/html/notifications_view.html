@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .filter-tabs {
+            display: flex;
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .filter-tab {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            background: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .filter-tab.active {
+            background: #1976d2;
+            color: white;
+        }
+        .notification-item {
+            background: white;
+            margin: 0 16px 12px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .notification-item:hover {
+            transform: translateY(-2px);
+        }
+        .notification-item.unread {
+            border-left: 4px solid #1976d2;
+            background: #f8f9fa;
+        }
+        .notification-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        .notification-icon.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .notification-icon.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .notification-icon.success {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        .notification-icon.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        .notification-content {
+            flex: 1;
+        }
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+        }
+        .notification-message {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        .notification-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+        }
+        .notification-time {
+            display: flex;
+            align-items: center;
+        }
+        .notification-time::before {
+            content: "🕐";
+            margin-right: 4px;
+        }
+        .notification-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn-small {
+            background: #f5f5f5;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .action-btn-small:hover {
+            background: #e0e0e0;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .empty-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .empty-message {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            transition: transform 0.2s;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 12px 16px;
+            }
+            .filter-tabs {
+                margin: 12px;
+            }
+            .notification-item {
+                margin: 0 12px 8px;
+                padding: 12px;
+            }
+            .fab {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">←</button>
+                <div class="header-title">Thông báo</div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn">✓</button>
+                <button class="action-btn">⚙️</button>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active">Tất cả</button>
+            <button class="filter-tab">Chưa đọc</button>
+            <button class="filter-tab">Quan trọng</button>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notifications-list">
+            <!-- Unread Notification -->
+            <div class="notification-item unread">
+                <div class="notification-header">
+                    <div class="notification-icon warning">⚠️</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Hóa đơn điện nước</div>
+                        <div class="notification-message">Hóa đơn tháng 12/2024 đã được tạo. Vui lòng thanh toán trước ngày 15/01/2025.</div>
+                        <div class="notification-meta">
+                            <div class="notification-time">2 giờ trước</div>
+                            <div class="notification-actions">
+                                <button class="action-btn-small">Xem</button>
+                                <button class="action-btn-small">Thanh toán</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Notification -->
+            <div class="notification-item">
+                <div class="notification-header">
+                    <div class="notification-icon info">ℹ️</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Sự kiện cộng đồng</div>
+                        <div class="notification-message">Chào mừng năm mới 2025! Sự kiện đón giao thừa sẽ diễn ra tại sảnh chính lúc 23:00.</div>
+                        <div class="notification-meta">
+                            <div class="notification-time">1 ngày trước</div>
+                            <div class="notification-actions">
+                                <button class="action-btn-small">Xem</button>
+                                <button class="action-btn-small">Tham gia</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Notification -->
+            <div class="notification-item">
+                <div class="notification-header">
+                    <div class="notification-icon success">✅</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Thanh toán thành công</div>
+                        <div class="notification-message">Bạn đã thanh toán thành công hóa đơn tiền điện tháng 11/2024. Cảm ơn bạn!</div>
+                        <div class="notification-meta">
+                            <div class="notification-time">3 ngày trước</div>
+                            <div class="notification-actions">
+                                <button class="action-btn-small">Xem</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Notification -->
+            <div class="notification-item">
+                <div class="notification-header">
+                    <div class="notification-icon info">🔧</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Bảo trì hệ thống</div>
+                        <div class="notification-message">Hệ thống sẽ được bảo trì từ 02:00 - 04:00 ngày mai. Xin lỗi vì sự bất tiện.</div>
+                        <div class="notification-meta">
+                            <div class="notification-time">1 tuần trước</div>
+                            <div class="notification-actions">
+                                <button class="action-btn-small">Xem</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Notification -->
+            <div class="notification-item">
+                <div class="notification-header">
+                    <div class="notification-icon error">❌</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Lỗi thanh toán</div>
+                        <div class="notification-message">Giao dịch thanh toán của bạn không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.</div>
+                        <div class="notification-meta">
+                            <div class="notification-time">1 tuần trước</div>
+                            <div class="notification-actions">
+                                <button class="action-btn-small">Thử lại</button>
+                                <button class="action-btn-small">Hỗ trợ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab">+</button>
+    </div>
+
+    <script>
+        // Filter tab functionality
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Mark notification as read
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', function() {
+                this.classList.remove('unread');
+            });
+        });
+    </script>
+</body>
+</html>

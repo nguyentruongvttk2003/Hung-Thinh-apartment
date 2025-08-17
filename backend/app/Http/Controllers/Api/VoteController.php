@@ -176,8 +176,42 @@ class VoteController extends Controller
 
     public function submitVote(Request $request, $id)
     {
-        // Logic to submit vote would go here
-        return response()->json(['message' => 'Vote submitted successfully']);
+        $vote = Vote::with('options')->findOrFail($id);
+
+        $validated = $request->validate([
+            'vote_option_id' => 'required|exists:vote_options,id',
+            'comment' => 'nullable|string',
+        ]);
+
+        // Ensure option belongs to this vote
+        if (!$vote->options->pluck('id')->contains($validated['vote_option_id'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lựa chọn không thuộc cuộc bỏ phiếu này'
+            ], 422);
+        }
+
+        // Prevent duplicate vote by same user
+        $existing = $vote->responses()->where('user_id', auth()->id())->first();
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn đã bỏ phiếu'
+            ], 400);
+        }
+
+        $response = $vote->responses()->create([
+            'vote_option_id' => $validated['vote_option_id'],
+            'user_id' => auth()->id(),
+            'comment' => $validated['comment'] ?? null,
+            'voted_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $response,
+            'message' => 'Vote submitted successfully'
+        ]);
     }
 
     public function results($id)

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            --light-blue-bg: #e7f1ff;
+            --text-dark: #212529;
+            --text-secondary: #6c757d;
+            --text-green: #28a745;
+            --text-orange: #fd7e14;
+            --bg-light-gray: #f8f9fa;
+            --border-color: #dee2e6;
+            --white: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            background-color: var(--bg-light-gray);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .app-header {
+            padding: 16px 20px;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .tab {
+            border: none;
+            background: none;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--primary-blue);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            height: 3px;
+            background-color: var(--primary-blue);
+            border-radius: 2px;
+        }
+
+        .summary-cards {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            flex: 1;
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .summary-card .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .summary-card .amount {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .summary-card .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .summary-card .icon.green, .summary-card .amount.green { color: var(--text-green); }
+        .summary-card .icon.orange, .summary-card .amount.orange { color: var(--text-orange); }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .search-bar .material-icons {
+            color: var(--text-secondary);
+            margin-right: 12px;
+        }
+        
+        .search-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+            background: none;
+        }
+
+        .invoice-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .invoice-card {
+            background-color: var(--white);
+            border: 1px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+        }
+        
+        .invoice-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .invoice-header .icon {
+            font-size: 24px;
+            color: var(--primary-blue);
+            margin-right: 12px;
+        }
+        
+        .invoice-info {
+            flex-grow: 1;
+        }
+
+        .invoice-id {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-dark);
+        }
+        
+        .invoice-apt {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            background-color: #fff4e6;
+            color: var(--text-orange);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+        
+        .invoice-body {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-left: 36px; /* Align with info text */
+        }
+        
+        .invoice-body .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .invoice-body .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        .invoice-body .value.orange {
+            color: var(--text-orange);
+        }
+        
+        .invoice-footer {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding-left: 36px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        
+        .invoice-footer span {
+            margin-right: 16px;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--white);
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 16px;
+        }
+        
+        .nav-item .material-icons {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item.active {
+            background-color: var(--light-blue-bg);
+            color: var(--primary-blue);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="app-header">Invoices</header>
+
+        <main class="main-content">
+            <div class="tabs">
+                <button class="tab active">Tất cả</button>
+                <button class="tab">Chờ thanh toán</button>
+                <button class="tab">Đã thanh toán</button>
+                <button class="tab">Quá hạn</button>
+            </div>
+
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="material-icons icon green">account_balance_wallet</div>
+                    <div class="amount green">13,532,671 VNĐ</div>
+                    <div class="label">Tổng tiền</div>
+                </div>
+                <div class="summary-card">
+                    <div class="material-icons icon orange">receipt_long</div>
+                    <div class="amount orange">10,733,358 VNĐ</div>
+                    <div class="label">Chưa thanh toán</div>
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <i class="material-icons">description</i>
+                <input type="text" placeholder="Tìm hóa đơn...">
+            </div>
+
+            <div class="invoice-list">
+                <div class="invoice-card">
+                    <div class="invoice-header">
+                        <i class="material-icons icon">description</i>
+                        <div class="invoice-info">
+                            <div class="invoice-id">INV-2025-08-001</div>
+                            <div class="invoice-apt">Căn hộ A101</div>
+                        </div>
+                        <span class="status-badge">Chờ</span>
+                    </div>
+                    <div class="invoice-body">
+                        <div>
+                            <div class="label">Tổng tiền</div>
+                            <div class="value">1,548,172 VNĐ</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="label">Còn lại</div>
+                            <div class="value orange">1,548,172 VNĐ</div>
+                        </div>
+                    </div>
+                    <div class="invoice-footer">
+                        <span>Kỳ thanh toán: 01/2024</span>
+                        <span>Hạn: 15/01/2024</span>
+                    </div>
+                </div>
+                
+                <div class="invoice-card">
+                    <div class="invoice-header">
+                        <i class="material-icons icon">description</i>
+                        <div class="invoice-info">
+                            <div class="invoice-id">INV-2025-08-002</div>
+                            <div class="invoice-apt">Căn hộ A101</div>
+                        </div>
+                        <span class="status-badge">Chờ</span>
+                    </div>
+                    <div class="invoice-body">
+                        <div>
+                            <div class="label">Tổng tiền</div>
+                            <div class="value">1,704,521 VNĐ</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="label">Còn lại</div>
+                            <div class="value orange">1,704,521 VNĐ</div>
+                        </div>
+                    </div>
+                    <div class="invoice-footer">
+                         <span>Kỳ thanh toán: 01/2024</span>
+                        <span>Hạn: 15/01/2024</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <nav class="bottom-nav">
+            <div class="nav-item">
+                <i class="material-icons">apps</i>
+            </div>
+            <div class="nav-item">
+                <i class="material-icons">business</i>
+            </div>
+            <div class="nav-item active">
+                <i class="material-icons">receipt_long</i>
+                <span>Hóa đơn</span>
+            </div>
+            <div class="nav-item">
+                <i class="material-icons">notifications</i>
+            </div>
+            <div class="nav-item">
+                 <i class="material-icons">person</i>
+            </div>
+        </nav>
+    </div>
+</body>
+</html>

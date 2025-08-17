@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý nhân viên</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #009688, #00695c);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .stats-overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 16px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #009688;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+        }
+        .search-section {
+            padding: 0 16px 16px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+            background: white;
+            margin-bottom: 12px;
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+        .filter-tab {
+            padding: 8px 16px;
+            border: 1px solid #009688;
+            border-radius: 20px;
+            background: white;
+            color: #009688;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .filter-tab.active {
+            background: #009688;
+            color: white;
+        }
+        .staff-list {
+            padding: 0 16px 16px;
+        }
+        .staff-item {
+            background: white;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .staff-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .staff-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #009688, #00695c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .staff-info {
+            flex: 1;
+        }
+        .staff-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .staff-position {
+            font-size: 13px;
+            color: #009688;
+            font-weight: 500;
+        }
+        .staff-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-active {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .status-inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .status-vacation {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        .staff-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .detail-icon {
+            width: 16px;
+            height: 16px;
+            background: #009688;
+            border-radius: 50%;
+        }
+        .detail-text {
+            font-size: 12px;
+            color: #666;
+        }
+        .staff-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #009688;
+            border-radius: 8px;
+            background: white;
+            color: #009688;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background: #009688;
+            color: white;
+        }
+        .action-btn.primary {
+            background: #009688;
+            color: white;
+        }
+        .add-staff-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #009688, #00695c);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,150,136,0.4);
+        }
+        .department-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #e0f2f1;
+            color: #00695c;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .performance-bar {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .performance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #009688, #4db6ac);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .performance-text {
+            font-size: 11px;
+            color: #666;
+            min-width: 30px;
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 16px;
+            }
+            .stats-overview {
+                padding: 12px;
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .search-section {
+                padding: 0 12px 12px;
+            }
+            .staff-list {
+                padding: 0 12px 12px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn">←</button>
+            <h1>👥 Quản lý nhân viên</h1>
+            <p>Quản lý thông tin và hiệu suất nhân viên</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-number">24</div>
+                <div class="stat-label">Tổng nhân viên</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">20</div>
+                <div class="stat-label">Đang làm việc</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Nghỉ phép</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">1</div>
+                <div class="stat-label">Nghỉ việc</div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-section">
+            <input type="text" class="search-box" placeholder="🔍 Tìm kiếm nhân viên...">
+            <div class="filter-tabs">
+                <div class="filter-tab active" onclick="filterStaff('all')">Tất cả</div>
+                <div class="filter-tab" onclick="filterStaff('active')">Đang làm việc</div>
+                <div class="filter-tab" onclick="filterStaff('vacation')">Nghỉ phép</div>
+                <div class="filter-tab" onclick="filterStaff('inactive')">Nghỉ việc</div>
+                <div class="filter-tab" onclick="filterStaff('management')">Quản lý</div>
+                <div class="filter-tab" onclick="filterStaff('staff')">Nhân viên</div>
+            </div>
+        </div>
+
+        <!-- Staff List -->
+        <div class="staff-list">
+            <div class="staff-item" data-status="active" data-role="management">
+                <div class="staff-header">
+                    <div class="staff-avatar">NV</div>
+                    <div class="staff-info">
+                        <div class="staff-name">Nguyễn Văn An</div>
+                        <div class="staff-position">Quản lý tòa nhà</div>
+                        <div class="department-badge">Quản lý</div>
+                    </div>
+                    <div class="staff-status status-active">Đang làm việc</div>
+                </div>
+                <div class="staff-details">
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">ID: NV001</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">SĐT: 0901234567</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Email: an.nguyen@company.com</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Ngày vào: 15/03/2020</div>
+                    </div>
+                </div>
+                <div class="performance-indicator">
+                    <div class="performance-text">Hiệu suất:</div>
+                    <div class="performance-bar">
+                        <div class="performance-fill" style="width: 95%"></div>
+                    </div>
+                    <div class="performance-text">95%</div>
+                </div>
+                <div class="staff-actions">
+                    <button class="action-btn">Xem chi tiết</button>
+                    <button class="action-btn">Chỉnh sửa</button>
+                    <button class="action-btn primary">Đánh giá</button>
+                </div>
+            </div>
+
+            <div class="staff-item" data-status="active" data-role="staff">
+                <div class="staff-header">
+                    <div class="staff-avatar">TB</div>
+                    <div class="staff-info">
+                        <div class="staff-name">Trần Thị Bình</div>
+                        <div class="staff-position">Nhân viên bảo vệ</div>
+                        <div class="department-badge">An ninh</div>
+                    </div>
+                    <div class="staff-status status-active">Đang làm việc</div>
+                </div>
+                <div class="staff-details">
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">ID: NV002</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">SĐT: 0901234568</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Email: binh.tran@company.com</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Ngày vào: 20/06/2021</div>
+                    </div>
+                </div>
+                <div class="performance-indicator">
+                    <div class="performance-text">Hiệu suất:</div>
+                    <div class="performance-bar">
+                        <div class="performance-fill" style="width: 88%"></div>
+                    </div>
+                    <div class="performance-text">88%</div>
+                </div>
+                <div class="staff-actions">
+                    <button class="action-btn">Xem chi tiết</button>
+                    <button class="action-btn">Chỉnh sửa</button>
+                    <button class="action-btn primary">Đánh giá</button>
+                </div>
+            </div>
+
+            <div class="staff-item" data-status="vacation" data-role="staff">
+                <div class="staff-header">
+                    <div class="staff-avatar">LC</div>
+                    <div class="staff-info">
+                        <div class="staff-name">Lê Văn Cường</div>
+                        <div class="staff-position">Nhân viên vệ sinh</div>
+                        <div class="department-badge">Vệ sinh</div>
+                    </div>
+                    <div class="staff-status status-vacation">Nghỉ phép</div>
+                </div>
+                <div class="staff-details">
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">ID: NV003</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">SĐT: 0901234569</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Email: cuong.le@company.com</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Nghỉ từ: 25/01/2024</div>
+                    </div>
+                </div>
+                <div class="performance-indicator">
+                    <div class="performance-text">Hiệu suất:</div>
+                    <div class="performance-bar">
+                        <div class="performance-fill" style="width: 92%"></div>
+                    </div>
+                    <div class="performance-text">92%</div>
+                </div>
+                <div class="staff-actions">
+                    <button class="action-btn">Xem chi tiết</button>
+                    <button class="action-btn">Chỉnh sửa</button>
+                    <button class="action-btn">Duyệt phép</button>
+                </div>
+            </div>
+
+            <div class="staff-item" data-status="active" data-role="staff">
+                <div class="staff-header">
+                    <div class="staff-avatar">PD</div>
+                    <div class="staff-info">
+                        <div class="staff-name">Phạm Thị Dung</div>
+                        <div class="staff-position">Nhân viên kỹ thuật</div>
+                        <div class="department-badge">Kỹ thuật</div>
+                    </div>
+                    <div class="staff-status status-active">Đang làm việc</div>
+                </div>
+                <div class="staff-details">
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">ID: NV004</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">SĐT: 0901234570</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Email: dung.pham@company.com</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"></div>
+                        <div class="detail-text">Ngày vào: 10/09/2022</div>
+                    </div>
+                </div>
+                <div class="performance-indicator">
+                    <div class="performance-text">Hiệu suất:</div>
+                    <div class="performance-bar">
+                        <div class="performance-fill" style="width: 85%"></div>
+                    </div>
+                    <div class="performance-text">85%</div>
+                </div>
+                <div class="staff-actions">
+                    <button class="action-btn">Xem chi tiết</button>
+                    <button class="action-btn">Chỉnh sửa</button>
+                    <button class="action-btn primary">Đánh giá</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="add-staff-btn" onclick="addStaff()">+</button>
+    </div>
+
+    <script>
+        function filterStaff(filter) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Filter staff based on filter
+            const staffItems = document.querySelectorAll('.staff-item');
+            staffItems.forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = 'block';
+                } else if (filter === 'active' || filter === 'vacation' || filter === 'inactive') {
+                    item.style.display = item.dataset.status === filter ? 'block' : 'none';
+                } else if (filter === 'management' || filter === 'staff') {
+                    item.style.display = item.dataset.role === filter ? 'block' : 'none';
+                }
+            });
+        }
+
+        function addStaff() {
+            alert('Thêm nhân viên mới');
+        }
+
+        // Add click event to action buttons
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.textContent;
+                const staffName = this.closest('.staff-item').querySelector('.staff-name').textContent;
+                alert(`Thực hiện: ${action} cho ${staffName}`);
+            });
+        });
+
+        // Add click event to staff items
+        document.querySelectorAll('.staff-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('action-btn')) {
+                    const staffName = this.querySelector('.staff-name').textContent;
+                    alert(`Xem thông tin chi tiết: ${staffName}`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            color: white;
+            margin: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+        }
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .balance-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .balance-btn {
+            flex: 1;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .balance-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 16px 16px 12px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .view-all {
+            font-size: 12px;
+            color: #1976d2;
+            cursor: pointer;
+        }
+        .payment-methods {
+            display: flex;
+            gap: 12px;
+            margin: 0 16px 16px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        .payment-method {
+            min-width: 120px;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+        .payment-method:hover {
+            transform: translateY(-2px);
+        }
+        .payment-method.selected {
+            border-color: #1976d2;
+            background: #f3f8ff;
+        }
+        .payment-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .payment-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+        .transaction-item {
+            background: white;
+            margin: 0 16px 12px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .transaction-item:hover {
+            transform: translateY(-2px);
+        }
+        .transaction-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .transaction-icon.success {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        .transaction-icon.pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .transaction-icon.failed {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        .transaction-details h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: #333;
+        }
+        .transaction-details p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+        .transaction-amount {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .transaction-amount.success {
+            color: #388e3c;
+        }
+        .transaction-amount.pending {
+            color: #f57c00;
+        }
+        .transaction-amount.failed {
+            color: #d32f2f;
+        }
+        .transaction-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            transition: transform 0.2s;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 12px 16px;
+            }
+            .balance-card {
+                margin: 12px;
+                padding: 16px;
+            }
+            .quick-stats {
+                margin: 12px;
+                gap: 8px;
+            }
+            .section-header {
+                margin: 12px 12px 8px;
+            }
+            .payment-methods {
+                margin: 0 12px 12px;
+            }
+            .transaction-item {
+                margin: 0 12px 8px;
+                padding: 12px;
+            }
+            .fab {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">←</button>
+                <div class="header-title">Thanh toán</div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn">📊</button>
+                <button class="action-btn">⚙️</button>
+            </div>
+        </div>
+
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Số dư hiện tại</div>
+            <div class="balance-amount">2,450,000 ₫</div>
+            <div class="balance-actions">
+                <button class="balance-btn">Nạp tiền</button>
+                <button class="balance-btn">Rút tiền</button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Giao dịch</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Thành công</div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="section-header">
+            <div class="section-title">Phương thức thanh toán</div>
+            <div class="view-all">Thêm mới</div>
+        </div>
+        <div class="payment-methods">
+            <div class="payment-method selected">
+                <div class="payment-icon">💳</div>
+                <div class="payment-name">Thẻ ATM</div>
+            </div>
+            <div class="payment-method">
+                <div class="payment-icon">🏦</div>
+                <div class="payment-name">Chuyển khoản</div>
+            </div>
+            <div class="payment-method">
+                <div class="payment-icon">📱</div>
+                <div class="payment-name">Ví điện tử</div>
+            </div>
+            <div class="payment-method">
+                <div class="payment-icon">💵</div>
+                <div class="payment-name">Tiền mặt</div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="section-header">
+            <div class="section-title">Giao dịch gần đây</div>
+            <div class="view-all">Xem tất cả</div>
+        </div>
+
+        <div class="transactions-list">
+            <!-- Successful Transaction -->
+            <div class="transaction-item">
+                <div class="transaction-header">
+                    <div class="transaction-info">
+                        <div class="transaction-icon success">✅</div>
+                        <div class="transaction-details">
+                            <h4>Thanh toán hóa đơn điện</h4>
+                            <p>Hóa đơn tháng 12/2024</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount success">-450,000 ₫</div>
+                </div>
+                <div class="transaction-meta">
+                    <span>Hôm nay, 14:30</span>
+                    <span>Thành công</span>
+                </div>
+            </div>
+
+            <!-- Pending Transaction -->
+            <div class="transaction-item">
+                <div class="transaction-header">
+                    <div class="transaction-info">
+                        <div class="transaction-icon pending">⏳</div>
+                        <div class="transaction-details">
+                            <h4>Nạp tiền vào ví</h4>
+                            <p>Chuyển khoản từ ngân hàng</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount pending">+1,000,000 ₫</div>
+                </div>
+                <div class="transaction-meta">
+                    <span>Hôm qua, 09:15</span>
+                    <span>Đang xử lý</span>
+                </div>
+            </div>
+
+            <!-- Failed Transaction -->
+            <div class="transaction-item">
+                <div class="transaction-header">
+                    <div class="transaction-info">
+                        <div class="transaction-icon failed">❌</div>
+                        <div class="transaction-details">
+                            <h4>Thanh toán phí bảo trì</h4>
+                            <p>Phí bảo trì tháng 11/2024</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount failed">-200,000 ₫</div>
+                </div>
+                <div class="transaction-meta">
+                    <span>2 ngày trước, 16:45</span>
+                    <span>Thất bại</span>
+                </div>
+            </div>
+
+            <!-- Successful Transaction -->
+            <div class="transaction-item">
+                <div class="transaction-header">
+                    <div class="transaction-info">
+                        <div class="transaction-icon success">✅</div>
+                        <div class="transaction-details">
+                            <h4>Thanh toán phí dịch vụ</h4>
+                            <p>Phí vệ sinh tháng 12/2024</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount success">-150,000 ₫</div>
+                </div>
+                <div class="transaction-meta">
+                    <span>3 ngày trước, 11:20</span>
+                    <span>Thành công</span>
+                </div>
+            </div>
+
+            <!-- Successful Transaction -->
+            <div class="transaction-item">
+                <div class="transaction-header">
+                    <div class="transaction-info">
+                        <div class="transaction-icon success">✅</div>
+                        <div class="transaction-details">
+                            <h4>Nạp tiền vào ví</h4>
+                            <p>Chuyển khoản từ ngân hàng</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount success">+500,000 ₫</div>
+                </div>
+                <div class="transaction-meta">
+                    <span>1 tuần trước, 08:30</span>
+                    <span>Thành công</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab">+</button>
+    </div>
+
+    <script>
+        // Payment method selection
+        document.querySelectorAll('.payment-method').forEach(method => {
+            method.addEventListener('click', function() {
+                document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // Transaction item click
+        document.querySelectorAll('.transaction-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Navigate to transaction detail
+                console.log('View transaction details');
+            });
+        });
+
+        // View all buttons
+        document.querySelectorAll('.view-all').forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('View all items');
+            });
+        });
+    </script>
+</body>
+</html>
