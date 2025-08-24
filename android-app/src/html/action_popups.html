@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Popup</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #3f51b5, #303f9f);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .demo-section {
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .demo-btn {
+            padding: 12px;
+            border: 1px solid #3f51b5;
+            border-radius: 8px;
+            background: white;
+            color: #3f51b5;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .demo-btn:hover {
+            background: #3f51b5;
+            color: white;
+        }
+        .demo-btn.primary {
+            background: #3f51b5;
+            color: white;
+        }
+        .demo-btn.danger {
+            border-color: #f44336;
+            color: #f44336;
+        }
+        .demo-btn.danger:hover {
+            background: #f44336;
+            color: white;
+        }
+        .demo-btn.success {
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+        .demo-btn.success:hover {
+            background: #4caf50;
+            color: white;
+        }
+        .demo-btn.warning {
+            border-color: #ff9800;
+            color: #ff9800;
+        }
+        .demo-btn.warning:hover {
+            background: #ff9800;
+            color: white;
+        }
+
+        /* Popup Styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .popup-container {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 360px;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: popupSlideIn 0.3s ease-out;
+        }
+        @keyframes popupSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .popup-header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .popup-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .popup-close:hover {
+            background: #f5f5f5;
+            color: #666;
+        }
+        .popup-content {
+            padding: 20px;
+        }
+        .popup-footer {
+            padding: 16px 20px 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .popup-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .popup-btn.secondary {
+            background: white;
+            color: #666;
+            border-color: #ddd;
+        }
+        .popup-btn.secondary:hover {
+            background: #f5f5f5;
+        }
+        .popup-btn.primary {
+            background: #3f51b5;
+            color: white;
+        }
+        .popup-btn.primary:hover {
+            background: #303f9f;
+        }
+        .popup-btn.danger {
+            background: #f44336;
+            color: white;
+        }
+        .popup-btn.danger:hover {
+            background: #d32f2f;
+        }
+        .popup-btn.success {
+            background: #4caf50;
+            color: white;
+        }
+        .popup-btn.success:hover {
+            background: #388e3c;
+        }
+        .popup-btn.warning {
+            background: #ff9800;
+            color: white;
+        }
+        .popup-btn.warning:hover {
+            background: #f57c00;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3f51b5;
+        }
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .form-checkbox input {
+            width: 16px;
+            height: 16px;
+            accent-color: #3f51b5;
+        }
+
+        /* Confirmation Styles */
+        .confirm-icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .confirm-message {
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .confirm-description {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 16px;
+            }
+            .demo-section {
+                margin: 12px;
+                padding: 12px;
+            }
+            .button-grid {
+                gap: 8px;
+            }
+            .popup-container {
+                width: 95%;
+                margin: 0 10px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎭 Hệ thống Popup</h1>
+            <p>Demo các loại popup cho thao tác thêm, sửa, xóa</p>
+        </div>
+
+        <!-- Add Popups -->
+        <div class="demo-section">
+            <div class="section-title">➕ Popup Thêm mới</div>
+            <div class="button-grid">
+                <button class="demo-btn primary" onclick="showAddPopup('apartment')">Thêm căn hộ</button>
+                <button class="demo-btn primary" onclick="showAddPopup('staff')">Thêm nhân viên</button>
+                <button class="demo-btn primary" onclick="showAddPopup('device')">Thêm thiết bị</button>
+                <button class="demo-btn primary" onclick="showAddPopup('event')">Thêm sự kiện</button>
+            </div>
+        </div>
+
+        <!-- Edit Popups -->
+        <div class="demo-section">
+            <div class="section-title">✏️ Popup Chỉnh sửa</div>
+            <div class="button-grid">
+                <button class="demo-btn success" onclick="showEditPopup('apartment')">Sửa căn hộ</button>
+                <button class="demo-btn success" onclick="showEditPopup('staff')">Sửa nhân viên</button>
+                <button class="demo-btn success" onclick="showEditPopup('device')">Sửa thiết bị</button>
+                <button class="demo-btn success" onclick="showEditPopup('event')">Sửa sự kiện</button>
+            </div>
+        </div>
+
+        <!-- Delete Popups -->
+        <div class="demo-section">
+            <div class="section-title">🗑️ Popup Xóa</div>
+            <div class="button-grid">
+                <button class="demo-btn danger" onclick="showDeletePopup('apartment')">Xóa căn hộ</button>
+                <button class="demo-btn danger" onclick="showDeletePopup('staff')">Xóa nhân viên</button>
+                <button class="demo-btn danger" onclick="showDeletePopup('device')">Xóa thiết bị</button>
+                <button class="demo-btn danger" onclick="showDeletePopup('event')">Xóa sự kiện</button>
+            </div>
+        </div>
+
+        <!-- Special Popups -->
+        <div class="demo-section">
+            <div class="section-title">⭐ Popup Đặc biệt</div>
+            <div class="button-grid">
+                <button class="demo-btn warning" onclick="showConfirmPopup('maintenance')">Bảo trì</button>
+                <button class="demo-btn warning" onclick="showConfirmPopup('payment')">Thanh toán</button>
+                <button class="demo-btn success" onclick="showSuccessPopup()">Thành công</button>
+                <button class="demo-btn danger" onclick="showErrorPopup()">Lỗi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Popup Template -->
+    <div id="addPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3 class="popup-title" id="addPopupTitle">Thêm mới</h3>
+                <button class="popup-close" onclick="hidePopup('addPopup')">&times;</button>
+            </div>
+            <div class="popup-content">
+                <form id="addForm">
+                    <div class="form-group">
+                        <label class="form-label">Tên</label>
+                        <input type="text" class="form-input" placeholder="Nhập tên..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-textarea" placeholder="Nhập mô tả..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Loại</label>
+                            <select class="form-select">
+                                <option>Chọn loại...</option>
+                                <option>Loại 1</option>
+                                <option>Loại 2</option>
+                                <option>Loại 3</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Trạng thái</label>
+                            <select class="form-select">
+                                <option>Hoạt động</option>
+                                <option>Không hoạt động</option>
+                                <option>Bảo trì</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thông tin bổ sung</label>
+                        <input type="text" class="form-input" placeholder="Thông tin khác...">
+                    </div>
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="activeCheck">
+                        <label for="activeCheck">Kích hoạt ngay</label>
+                    </div>
+                </form>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn secondary" onclick="hidePopup('addPopup')">Hủy</button>
+                <button class="popup-btn primary" onclick="submitAddForm()">Thêm mới</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Popup Template -->
+    <div id="editPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3 class="popup-title" id="editPopupTitle">Chỉnh sửa</h3>
+                <button class="popup-close" onclick="hidePopup('editPopup')">&times;</button>
+            </div>
+            <div class="popup-content">
+                <form id="editForm">
+                    <div class="form-group">
+                        <label class="form-label">ID</label>
+                        <input type="text" class="form-input" value="001" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tên</label>
+                        <input type="text" class="form-input" value="Tên hiện tại" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-textarea">Mô tả hiện tại</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Loại</label>
+                            <select class="form-select">
+                                <option>Loại 1</option>
+                                <option>Loại 2</option>
+                                <option selected>Loại 3</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Trạng thái</label>
+                            <select class="form-select">
+                                <option selected>Hoạt động</option>
+                                <option>Không hoạt động</option>
+                                <option>Bảo trì</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thông tin bổ sung</label>
+                        <input type="text" class="form-input" value="Thông tin hiện tại">
+                    </div>
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="editActiveCheck" checked>
+                        <label for="editActiveCheck">Đang hoạt động</label>
+                    </div>
+                </form>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn secondary" onclick="hidePopup('editPopup')">Hủy</button>
+                <button class="popup-btn success" onclick="submitEditForm()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Popup Template -->
+    <div id="deletePopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3 class="popup-title" id="deletePopupTitle">Xác nhận xóa</h3>
+                <button class="popup-close" onclick="hidePopup('deletePopup')">&times;</button>
+            </div>
+            <div class="popup-content">
+                <div class="confirm-icon">🗑️</div>
+                <div class="confirm-message" id="deleteConfirmMessage">Bạn có chắc muốn xóa?</div>
+                <div class="confirm-description" id="deleteConfirmDescription">
+                    Hành động này không thể hoàn tác. Dữ liệu sẽ bị xóa vĩnh viễn.
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn secondary" onclick="hidePopup('deletePopup')">Hủy</button>
+                <button class="popup-btn danger" onclick="confirmDelete()">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Popup Template -->
+    <div id="confirmPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3 class="popup-title" id="confirmPopupTitle">Xác nhận</h3>
+                <button class="popup-close" onclick="hidePopup('confirmPopup')">&times;</button>
+            </div>
+            <div class="popup-content">
+                <div class="confirm-icon" id="confirmIcon">❓</div>
+                <div class="confirm-message" id="confirmMessage">Bạn có chắc muốn thực hiện?</div>
+                <div class="confirm-description" id="confirmDescription">
+                    Vui lòng xác nhận hành động này.
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn secondary" onclick="hidePopup('confirmPopup')">Hủy</button>
+                <button class="popup-btn warning" onclick="confirmAction()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup Template -->
+    <div id="successPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3 class="popup-title">Thành công</h3>
+                <button class="popup-close" onclick="hidePopup('successPopup')">&times;</button>
+            </div>
+            <div class="popup-content">
+                <div class="confirm-icon">✅</div>
+                <div class="confirm-message">Thao tác đã hoàn thành!</div>
+                <div class="confirm-description">
+                    Dữ liệu đã được xử lý thành công.
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn success" onclick="hidePopup('successPopup')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Popup Template -->
+    <div id="errorPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3 class="popup-title">Lỗi</h3>
+                <button class="popup-close" onclick="hidePopup('errorPopup')">&times;</button>
+            </div>
+            <div class="popup-content">
+                <div class="confirm-icon">❌</div>
+                <div class="confirm-message">Đã xảy ra lỗi!</div>
+                <div class="confirm-description">
+                    Không thể thực hiện thao tác. Vui lòng thử lại sau.
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn danger" onclick="hidePopup('errorPopup')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Popup Management Functions
+        function showPopup(popupId) {
+            document.getElementById(popupId).style.display = 'flex';
+        }
+
+        function hidePopup(popupId) {
+            document.getElementById(popupId).style.display = 'none';
+        }
+
+        // Add Popup Functions
+        function showAddPopup(type) {
+            const titles = {
+                'apartment': 'Thêm căn hộ mới',
+                'staff': 'Thêm nhân viên mới',
+                'device': 'Thêm thiết bị mới',
+                'event': 'Thêm sự kiện mới'
+            };
+            document.getElementById('addPopupTitle').textContent = titles[type] || 'Thêm mới';
+            showPopup('addPopup');
+        }
+
+        function submitAddForm() {
+            // Validate form
+            const form = document.getElementById('addForm');
+            if (form.checkValidity()) {
+                alert('Đã thêm mới thành công!');
+                hidePopup('addPopup');
+                form.reset();
+            } else {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+            }
+        }
+
+        // Edit Popup Functions
+        function showEditPopup(type) {
+            const titles = {
+                'apartment': 'Chỉnh sửa căn hộ',
+                'staff': 'Chỉnh sửa nhân viên',
+                'device': 'Chỉnh sửa thiết bị',
+                'event': 'Chỉnh sửa sự kiện'
+            };
+            document.getElementById('editPopupTitle').textContent = titles[type] || 'Chỉnh sửa';
+            showPopup('editPopup');
+        }
+
+        function submitEditForm() {
+            alert('Đã cập nhật thành công!');
+            hidePopup('editPopup');
+        }
+
+        // Delete Popup Functions
+        function showDeletePopup(type) {
+            const titles = {
+                'apartment': 'Xóa căn hộ',
+                'staff': 'Xóa nhân viên',
+                'device': 'Xóa thiết bị',
+                'event': 'Xóa sự kiện'
+            };
+            const messages = {
+                'apartment': 'Bạn có chắc muốn xóa căn hộ này?',
+                'staff': 'Bạn có chắc muốn xóa nhân viên này?',
+                'device': 'Bạn có chắc muốn xóa thiết bị này?',
+                'event': 'Bạn có chắc muốn xóa sự kiện này?'
+            };
+            const descriptions = {
+                'apartment': 'Căn hộ và tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn.',
+                'staff': 'Thông tin nhân viên và lịch sử làm việc sẽ bị xóa vĩnh viễn.',
+                'device': 'Thiết bị và dữ liệu giám sát sẽ bị xóa vĩnh viễn.',
+                'event': 'Sự kiện và thông tin liên quan sẽ bị xóa vĩnh viễn.'
+            };
+            
+            document.getElementById('deletePopupTitle').textContent = titles[type] || 'Xác nhận xóa';
+            document.getElementById('deleteConfirmMessage').textContent = messages[type] || 'Bạn có chắc muốn xóa?';
+            document.getElementById('deleteConfirmDescription').textContent = descriptions[type] || 'Hành động này không thể hoàn tác.';
+            
+            showPopup('deletePopup');
+        }
+
+        function confirmDelete() {
+            alert('Đã xóa thành công!');
+            hidePopup('deletePopup');
+        }
+
+        // Confirmation Popup Functions
+        function showConfirmPopup(type) {
+            const configs = {
+                'maintenance': {
+                    title: 'Xác nhận bảo trì',
+                    icon: '🔧',
+                    message: 'Bạn có chắc muốn bắt đầu bảo trì?',
+                    description: 'Hệ thống sẽ tạm thời ngừng hoạt động trong quá trình bảo trì.'
+                },
+                'payment': {
+                    title: 'Xác nhận thanh toán',
+                    icon: '💳',
+                    message: 'Bạn có chắc muốn thực hiện thanh toán?',
+                    description: 'Số tiền sẽ được trừ khỏi tài khoản của bạn.'
+                }
+            };
+            
+            const config = configs[type] || {
+                title: 'Xác nhận',
+                icon: '❓',
+                message: 'Bạn có chắc muốn thực hiện?',
+                description: 'Vui lòng xác nhận hành động này.'
+            };
+            
+            document.getElementById('confirmPopupTitle').textContent = config.title;
+            document.getElementById('confirmIcon').textContent = config.icon;
+            document.getElementById('confirmMessage').textContent = config.message;
+            document.getElementById('confirmDescription').textContent = config.description;
+            
+            showPopup('confirmPopup');
+        }
+
+        function confirmAction() {
+            alert('Đã xác nhận thành công!');
+            hidePopup('confirmPopup');
+        }
+
+        // Success and Error Popup Functions
+        function showSuccessPopup() {
+            showPopup('successPopup');
+        }
+
+        function showErrorPopup() {
+            showPopup('errorPopup');
+        }
+
+        // Close popup when clicking outside
+        document.querySelectorAll('.popup-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    hidePopup(overlay.id);
+                }
+            });
+        });
+
+        // Close popup with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.popup-overlay').forEach(overlay => {
+                    if (overlay.style.display === 'flex') {
+                        hidePopup(overlay.id);
+                    }
+                });
+            }
+        });
+
+        // Form validation
+        document.querySelectorAll('.form-input[required]').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    this.style.borderColor = '#f44336';
+                } else {
+                    this.style.borderColor = '#ddd';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

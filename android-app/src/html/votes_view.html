@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bình chọn</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .filter-tabs {
+            display: flex;
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .filter-tab {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            background: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .filter-tab.active {
+            background: #1976d2;
+            color: white;
+        }
+        .vote-card {
+            background: white;
+            margin: 0 16px 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .vote-card:hover {
+            transform: translateY(-2px);
+        }
+        .vote-header {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .vote-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .vote-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+        .vote-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+        }
+        .vote-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .status-active {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        .status-ended {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        .status-upcoming {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .vote-options {
+            padding: 16px;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-item:hover {
+            border-color: #1976d2;
+            background: #f8f9fa;
+        }
+        .option-item.selected {
+            border-color: #1976d2;
+            background: #e3f2fd;
+        }
+        .option-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .option-radio {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            position: relative;
+        }
+        .option-item.selected .option-radio {
+            border-color: #1976d2;
+        }
+        .option-item.selected .option-radio::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: #1976d2;
+            border-radius: 50%;
+        }
+        .option-text {
+            font-size: 14px;
+            color: #333;
+        }
+        .option-votes {
+            font-size: 12px;
+            color: #666;
+        }
+        .vote-actions {
+            padding: 16px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 12px;
+        }
+        .vote-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .vote-btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+        .vote-btn-primary:hover {
+            background: #1565c0;
+        }
+        .vote-btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+        .vote-btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1976d2, #42a5f5);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            transition: transform 0.2s;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 12px 16px;
+            }
+            .quick-stats {
+                margin: 12px;
+                gap: 8px;
+            }
+            .filter-tabs {
+                margin: 12px;
+            }
+            .vote-card {
+                margin: 0 12px 12px;
+            }
+            .fab {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">←</button>
+                <div class="header-title">Bình chọn</div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn">📊</button>
+                <button class="action-btn">⚙️</button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Cuộc bình chọn</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">156</div>
+                <div class="stat-label">Lượt bình chọn</div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active">Tất cả</button>
+            <button class="filter-tab">Đang diễn ra</button>
+            <button class="filter-tab">Đã kết thúc</button>
+        </div>
+
+        <!-- Votes List -->
+        <div class="votes-list">
+            <!-- Active Vote -->
+            <div class="vote-card">
+                <div class="vote-header">
+                    <div class="vote-title">Chọn màu sơn chung cư</div>
+                    <div class="vote-description">
+                        Bình chọn màu sơn mới cho tòa nhà chung cư. Màu sơn sẽ được áp dụng vào tháng 3/2025.
+                    </div>
+                    <div class="vote-meta">
+                        <span>Kết thúc: 15/02/2025</span>
+                        <div class="vote-status status-active">Đang diễn ra</div>
+                    </div>
+                </div>
+                <div class="vote-options">
+                    <div class="option-item selected">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Màu xanh dương</div>
+                        </div>
+                        <div class="option-votes">45 phiếu</div>
+                    </div>
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Màu xanh lá</div>
+                        </div>
+                        <div class="option-votes">32 phiếu</div>
+                    </div>
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Màu vàng</div>
+                        </div>
+                        <div class="option-votes">28 phiếu</div>
+                    </div>
+                </div>
+                <div class="vote-actions">
+                    <button class="vote-btn vote-btn-primary">Bình chọn</button>
+                    <button class="vote-btn vote-btn-secondary">Xem kết quả</button>
+                </div>
+            </div>
+
+            <!-- Upcoming Vote -->
+            <div class="vote-card">
+                <div class="vote-header">
+                    <div class="vote-title">Chọn hoạt động cộng đồng</div>
+                    <div class="vote-description">
+                        Bình chọn hoạt động cộng đồng cho tháng 2/2025. Các hoạt động sẽ được tổ chức vào cuối tuần.
+                    </div>
+                    <div class="vote-meta">
+                        <span>Bắt đầu: 01/02/2025</span>
+                        <div class="vote-status status-upcoming">Sắp diễn ra</div>
+                    </div>
+                </div>
+                <div class="vote-options">
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Tiệc BBQ ngoài trời</div>
+                        </div>
+                        <div class="option-votes">0 phiếu</div>
+                    </div>
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Lớp yoga cộng đồng</div>
+                        </div>
+                        <div class="option-votes">0 phiếu</div>
+                    </div>
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Hội thảo nấu ăn</div>
+                        </div>
+                        <div class="option-votes">0 phiếu</div>
+                    </div>
+                </div>
+                <div class="vote-actions">
+                    <button class="vote-btn vote-btn-secondary" disabled>Chưa bắt đầu</button>
+                    <button class="vote-btn vote-btn-secondary">Chi tiết</button>
+                </div>
+            </div>
+
+            <!-- Ended Vote -->
+            <div class="vote-card">
+                <div class="vote-header">
+                    <div class="vote-title">Chọn thời gian mở cửa hồ bơi</div>
+                    <div class="vote-description">
+                        Bình chọn thời gian mở cửa hồ bơi mùa hè 2024. Kết quả đã được áp dụng từ tháng 6/2024.
+                    </div>
+                    <div class="vote-meta">
+                        <span>Đã kết thúc: 30/05/2024</span>
+                        <div class="vote-status status-ended">Đã kết thúc</div>
+                    </div>
+                </div>
+                <div class="vote-options">
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">06:00 - 22:00</div>
+                        </div>
+                        <div class="option-votes">67 phiếu (Thắng)</div>
+                    </div>
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">07:00 - 21:00</div>
+                        </div>
+                        <div class="option-votes">34 phiếu</div>
+                    </div>
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">08:00 - 20:00</div>
+                        </div>
+                        <div class="option-votes">23 phiếu</div>
+                    </div>
+                </div>
+                <div class="vote-actions">
+                    <button class="vote-btn vote-btn-secondary">Xem kết quả</button>
+                    <button class="vote-btn vote-btn-secondary">Chi tiết</button>
+                </div>
+            </div>
+
+            <!-- Active Vote with Progress -->
+            <div class="vote-card">
+                <div class="vote-header">
+                    <div class="vote-title">Chọn loại cây trồng</div>
+                    <div class="vote-description">
+                        Bình chọn loại cây trồng cho khu vườn chung cư. Cây sẽ được trồng vào mùa xuân 2025.
+                    </div>
+                    <div class="vote-meta">
+                        <span>Kết thúc: 28/02/2025</span>
+                        <div class="vote-status status-active">Đang diễn ra</div>
+                    </div>
+                </div>
+                <div class="vote-options">
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Cây hoa giấy</div>
+                        </div>
+                        <div class="option-votes">52 phiếu</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%;"></div>
+                    </div>
+                    <div class="option-item">
+                        <div class="option-content">
+                            <div class="option-radio"></div>
+                            <div class="option-text">Cây phượng vĩ</div>
+                        </div>
+                        <div class="option-votes">28 phiếu</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 35%;"></div>
+                    </div>
+                </div>
+                <div class="vote-actions">
+                    <button class="vote-btn vote-btn-primary">Bình chọn</button>
+                    <button class="vote-btn vote-btn-secondary">Xem kết quả</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab">+</button>
+    </div>
+
+    <script>
+        // Filter tab functionality
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Option selection
+        document.querySelectorAll('.option-item').forEach(option => {
+            option.addEventListener('click', function() {
+                const parentCard = this.closest('.vote-card');
+                parentCard.querySelectorAll('.option-item').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // Vote button functionality
+        document.querySelectorAll('.vote-btn-primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const voteCard = this.closest('.vote-card');
+                const selectedOption = voteCard.querySelector('.option-item.selected');
+                if (selectedOption) {
+                    alert('Bình chọn thành công!');
+                    // Update vote count
+                    const voteText = selectedOption.querySelector('.option-votes');
+                    const currentVotes = parseInt(voteText.textContent.match(/\d+/)[0]);
+                    voteText.textContent = `${currentVotes + 1} phiếu`;
+                } else {
+                    alert('Vui lòng chọn một phương án!');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

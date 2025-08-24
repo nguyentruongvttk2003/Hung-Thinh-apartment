@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - Apartment Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 20px 16px;
+            border-radius: 0 0 20px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            margin: 20px 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #1976d2;
+        }
+
+        .stat-card.pending {
+            border-left-color: #ff9800;
+        }
+
+        .stat-card.in-progress {
+            border-left-color: #1976d2;
+        }
+
+        .stat-card.completed {
+            border-left-color: #4caf50;
+        }
+
+        .stat-card.urgent {
+            border-left-color: #f44336;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-card.pending .stat-number { color: #ff9800; }
+        .stat-card.in-progress .stat-number { color: #1976d2; }
+        .stat-card.completed .stat-number { color: #4caf50; }
+        .stat-card.urgent .stat-number { color: #f44336; }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Search and Filter */
+        .search-section {
+            background: white;
+            margin: 0 16px 20px 16px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            background: #fafafa;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .filter-btn.active {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .filter-btn:hover {
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        /* Maintenance List */
+        .maintenance-section {
+            margin: 0 16px 20px 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .add-btn:hover {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
+
+        .maintenance-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #1976d2;
+        }
+
+        .maintenance-card.pending {
+            border-left-color: #ff9800;
+        }
+
+        .maintenance-card.in-progress {
+            border-left-color: #1976d2;
+        }
+
+        .maintenance-card.completed {
+            border-left-color: #4caf50;
+        }
+
+        .maintenance-card.urgent {
+            border-left-color: #f44336;
+        }
+
+        .maintenance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .maintenance-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .maintenance-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .priority-low {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .priority-medium {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .priority-urgent {
+            background: #fce4ec;
+            color: #ad1457;
+        }
+
+        .maintenance-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .detail-icon {
+            width: 16px;
+            height: 16px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .maintenance-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1976d2, #4caf50);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .maintenance-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            color: #666;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .action-btn.primary {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .action-btn.primary:hover {
+            background: #1565c0;
+        }
+
+        .action-btn.success {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .action-btn.success:hover {
+            background: #45a049;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(25, 118, 210, 0.3);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .header {
+                padding: 16px 12px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .quick-stats {
+                margin: 16px 12px;
+                gap: 8px;
+            }
+            
+            .search-section {
+                margin: 0 12px 16px 12px;
+                padding: 12px;
+            }
+            
+            .maintenance-section {
+                margin: 0 12px 16px 12px;
+            }
+            
+            .maintenance-card {
+                padding: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .fab {
+                bottom: 16px;
+                right: 16px;
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+        }
+
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔧 Quản lý Bảo trì</h1>
+            <p>Theo dõi và xử lý yêu cầu bảo trì</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card pending">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Chờ xử lý</div>
+            </div>
+            <div class="stat-card in-progress">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Đang xử lý</div>
+            </div>
+            <div class="stat-card completed">
+                <div class="stat-number">24</div>
+                <div class="stat-label">Đã hoàn thành</div>
+            </div>
+            <div class="stat-card urgent">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Khẩn cấp</div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-section">
+            <input type="text" class="search-input" placeholder="🔍 Tìm kiếm yêu cầu bảo trì...">
+            <div class="filter-buttons">
+                <button class="filter-btn active">Tất cả</button>
+                <button class="filter-btn">Chờ xử lý</button>
+                <button class="filter-btn">Đang xử lý</button>
+                <button class="filter-btn">Đã hoàn thành</button>
+            </div>
+        </div>
+
+        <!-- Maintenance List -->
+        <div class="maintenance-section">
+            <div class="section-header">
+                <h2 class="section-title">Danh sách Bảo trì</h2>
+                <button class="add-btn">
+                    <span>➕</span>
+                    Tạo mới
+                </button>
+            </div>
+
+            <!-- Maintenance Card 1 -->
+            <div class="maintenance-card urgent">
+                <div class="maintenance-header">
+                    <div>
+                        <div class="maintenance-title">🚨 Sự cố điện tầng 2</div>
+                        <div class="maintenance-subtitle">Căn hộ A201 - A202</div>
+                    </div>
+                    <span class="priority-badge priority-urgent">Khẩn cấp</span>
+                </div>
+                <div class="maintenance-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Trần Thị B</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Báo cáo: 15/12</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">🔧</div>
+                        <span>Điện nước</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">👨‍🔧</div>
+                        <span>Đang xử lý</span>
+                    </div>
+                </div>
+                <div class="maintenance-description">
+                    Mất điện hoàn toàn tại tầng 2, ảnh hưởng đến 4 căn hộ. 
+                    Cần kiểm tra và sửa chữa ngay lập tức.
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%;"></div>
+                </div>
+                <div class="progress-text">Tiến độ: 60% - Đang kiểm tra hệ thống</div>
+                <div class="maintenance-actions">
+                    <button class="action-btn">📋 Chi tiết</button>
+                    <button class="action-btn">📞 Liên hệ</button>
+                    <button class="action-btn success">✅ Hoàn thành</button>
+                </div>
+            </div>
+
+            <!-- Maintenance Card 2 -->
+            <div class="maintenance-card in-progress">
+                <div class="maintenance-header">
+                    <div>
+                        <div class="maintenance-title">🚰 Rò rỉ nước tầng 1</div>
+                        <div class="maintenance-subtitle">Căn hộ A101</div>
+                    </div>
+                    <span class="priority-badge priority-high">Cao</span>
+                </div>
+                <div class="maintenance-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Nguyễn Văn A</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Báo cáo: 14/12</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">🔧</div>
+                        <span>Điện nước</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">👨‍🔧</div>
+                        <span>Đang xử lý</span>
+                    </div>
+                </div>
+                <div class="maintenance-description">
+                    Rò rỉ nước từ ống nước trong phòng tắm, gây ẩm ướt và có thể ảnh hưởng đến căn hộ bên dưới.
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 80%;"></div>
+                </div>
+                <div class="progress-text">Tiến độ: 80% - Đang thay ống nước</div>
+                <div class="maintenance-actions">
+                    <button class="action-btn">📋 Chi tiết</button>
+                    <button class="action-btn">📸 Chụp ảnh</button>
+                    <button class="action-btn success">✅ Hoàn thành</button>
+                </div>
+            </div>
+
+            <!-- Maintenance Card 3 -->
+            <div class="maintenance-card pending">
+                <div class="maintenance-header">
+                    <div>
+                        <div class="maintenance-title">💡 Thay bóng đèn hành lang</div>
+                        <div class="maintenance-subtitle">Tầng 3 - Hành lang</div>
+                    </div>
+                    <span class="priority-badge priority-medium">Trung bình</span>
+                </div>
+                <div class="maintenance-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Bảo vệ</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Báo cáo: 13/12</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">🔧</div>
+                        <span>Điện</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">⏰</div>
+                        <span>Chờ xử lý</span>
+                    </div>
+                </div>
+                <div class="maintenance-description">
+                    Bóng đèn hành lang tầng 3 bị cháy, cần thay thế để đảm bảo ánh sáng cho cư dân.
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%;"></div>
+                </div>
+                <div class="progress-text">Tiến độ: 0% - Chờ phân công</div>
+                <div class="maintenance-actions">
+                    <button class="action-btn">📋 Chi tiết</button>
+                    <button class="action-btn">👨‍🔧 Phân công</button>
+                    <button class="action-btn primary">▶️ Bắt đầu</button>
+                </div>
+            </div>
+
+            <!-- Maintenance Card 4 -->
+            <div class="maintenance-card completed">
+                <div class="maintenance-header">
+                    <div>
+                        <div class="maintenance-title">🔒 Sửa khóa cửa chính</div>
+                        <div class="maintenance-subtitle">Cửa ra vào chính</div>
+                    </div>
+                    <span class="priority-badge priority-low">Thấp</span>
+                </div>
+                <div class="maintenance-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">👤</div>
+                        <span>Bảo vệ</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <span>Hoàn thành: 12/12</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">🔧</div>
+                        <span>Cơ khí</span>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">✅</div>
+                        <span>Đã hoàn thành</span>
+                    </div>
+                </div>
+                <div class="maintenance-description">
+                    Khóa cửa chính bị kẹt, đã được thay thế và hoạt động bình thường.
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%;"></div>
+                </div>
+                <div class="progress-text">Tiến độ: 100% - Hoàn thành</div>
+                <div class="maintenance-actions">
+                    <button class="action-btn">📋 Chi tiết</button>
+                    <button class="action-btn">📸 Hình ảnh</button>
+                    <button class="action-btn primary">📊 Báo cáo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab">➕</button>
+    </div>
+</body>
+</html>
+

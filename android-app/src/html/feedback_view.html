@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phản hồi</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .rating-summary {
+            background: white;
+            margin: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .overall-rating {
+            font-size: 48px;
+            font-weight: 700;
+            color: #ff9800;
+            margin-bottom: 8px;
+        }
+        .rating-label {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .star {
+            font-size: 24px;
+            color: #ffd700;
+        }
+        .star.empty {
+            color: #e0e0e0;
+        }
+        .rating-count {
+            font-size: 14px;
+            color: #999;
+        }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin: 16px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .filter-tabs {
+            display: flex;
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .filter-tab {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            background: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .filter-tab.active {
+            background: #1976d2;
+            color: white;
+        }
+        .feedback-item {
+            background: white;
+            margin: 0 16px 16px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .feedback-item:hover {
+            transform: translateY(-2px);
+        }
+        .feedback-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .feedback-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #1976d2;
+        }
+        .user-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: #333;
+        }
+        .user-info p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+        .feedback-rating {
+            display: flex;
+            gap: 2px;
+        }
+        .rating-star {
+            font-size: 16px;
+            color: #ffd700;
+        }
+        .rating-star.empty {
+            color: #e0e0e0;
+        }
+        .feedback-content {
+            margin-bottom: 12px;
+        }
+        .feedback-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        .feedback-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .feedback-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+        }
+        .feedback-time {
+            display: flex;
+            align-items: center;
+        }
+        .feedback-time::before {
+            content: "🕐";
+            margin-right: 4px;
+        }
+        .feedback-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn-small {
+            background: #f5f5f5;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .action-btn-small:hover {
+            background: #e0e0e0;
+        }
+        .feedback-form {
+            background: white;
+            margin: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8f9fa;
+            box-sizing: border-box;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+        }
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8f9fa;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+        .form-textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+        }
+        .rating-input {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .rating-star-input {
+            font-size: 32px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .rating-star-input:hover,
+        .rating-star-input.active {
+            color: #ffd700;
+        }
+        .form-submit {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .form-submit:hover {
+            background: #1565c0;
+        }
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            transition: transform 0.2s;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 12px 16px;
+            }
+            .rating-summary {
+                margin: 12px;
+                padding: 16px;
+            }
+            .quick-stats {
+                margin: 12px;
+                gap: 8px;
+            }
+            .filter-tabs {
+                margin: 12px;
+            }
+            .feedback-item {
+                margin: 0 12px 12px;
+                padding: 12px;
+            }
+            .feedback-form {
+                margin: 12px;
+                padding: 16px;
+            }
+            .fab {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">←</button>
+                <div class="header-title">Phản hồi</div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn">📊</button>
+                <button class="action-btn">⚙️</button>
+            </div>
+        </div>
+
+        <!-- Rating Summary -->
+        <div class="rating-summary">
+            <div class="overall-rating">4.2</div>
+            <div class="rating-label">Đánh giá trung bình</div>
+            <div class="rating-stars">
+                <span class="star">★</span>
+                <span class="star">★</span>
+                <span class="star">★</span>
+                <span class="star">★</span>
+                <span class="star empty">★</span>
+            </div>
+            <div class="rating-count">Dựa trên 156 đánh giá</div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number">156</div>
+                <div class="stat-label">Đánh giá</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">89</div>
+                <div class="stat-label">Tích cực</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Cần cải thiện</div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active">Tất cả</button>
+            <button class="filter-tab">5 sao</button>
+            <button class="filter-tab">4 sao</button>
+            <button class="filter-tab">3 sao</button>
+        </div>
+
+        <!-- Feedback List -->
+        <div class="feedback-list">
+            <!-- 5 Star Feedback -->
+            <div class="feedback-item">
+                <div class="feedback-header">
+                    <div class="feedback-user">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-info">
+                            <h4>Nguyễn Thị B</h4>
+                            <p>Căn hộ A12</p>
+                        </div>
+                    </div>
+                    <div class="feedback-rating">
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                    </div>
+                </div>
+                <div class="feedback-content">
+                    <div class="feedback-text">
+                        Dịch vụ rất tốt, nhân viên phục vụ nhiệt tình. Khu vực chung cư sạch sẽ, an ninh tốt. Rất hài lòng với việc lựa chọn nơi này.
+                    </div>
+                    <span class="feedback-category">Dịch vụ</span>
+                </div>
+                <div class="feedback-meta">
+                    <div class="feedback-time">Hôm nay, 10:30</div>
+                    <div class="feedback-actions">
+                        <button class="action-btn-small">👍</button>
+                        <button class="action-btn-small">💬</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 Star Feedback -->
+            <div class="feedback-item">
+                <div class="feedback-header">
+                    <div class="feedback-user">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-info">
+                            <h4>Trần Văn C</h4>
+                            <p>Căn hộ B08</p>
+                        </div>
+                    </div>
+                    <div class="feedback-rating">
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star empty">★</span>
+                    </div>
+                </div>
+                <div class="feedback-content">
+                    <div class="feedback-text">
+                        Chung cư đẹp, tiện nghi tốt. Tuy nhiên cần cải thiện thêm về hệ thống thang máy vào giờ cao điểm.
+                    </div>
+                    <span class="feedback-category">Cơ sở vật chất</span>
+                </div>
+                <div class="feedback-meta">
+                    <div class="feedback-time">Hôm qua, 15:45</div>
+                    <div class="feedback-actions">
+                        <button class="action-btn-small">👍</button>
+                        <button class="action-btn-small">💬</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Star Feedback -->
+            <div class="feedback-item">
+                <div class="feedback-header">
+                    <div class="feedback-user">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-info">
+                            <h4>Lê Thị D</h4>
+                            <p>Căn hộ C15</p>
+                        </div>
+                    </div>
+                    <div class="feedback-rating">
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star empty">★</span>
+                        <span class="rating-star empty">★</span>
+                    </div>
+                </div>
+                <div class="feedback-content">
+                    <div class="feedback-text">
+                        Vị trí thuận tiện, giá cả hợp lý. Nhưng cần cải thiện về vấn đề tiếng ồn từ các căn hộ xung quanh.
+                    </div>
+                    <span class="feedback-category">Môi trường</span>
+                </div>
+                <div class="feedback-meta">
+                    <div class="feedback-time">2 ngày trước, 09:15</div>
+                    <div class="feedback-actions">
+                        <button class="action-btn-small">👍</button>
+                        <button class="action-btn-small">💬</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5 Star Feedback -->
+            <div class="feedback-item">
+                <div class="feedback-header">
+                    <div class="feedback-user">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-info">
+                            <h4>Phạm Văn E</h4>
+                            <p>Căn hộ D22</p>
+                        </div>
+                    </div>
+                    <div class="feedback-rating">
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                        <span class="rating-star">★</span>
+                    </div>
+                </div>
+                <div class="feedback-content">
+                    <div class="feedback-text">
+                        Rất hài lòng với dịch vụ bảo trì. Nhân viên kỹ thuật phản hồi nhanh và xử lý vấn đề hiệu quả.
+                    </div>
+                    <span class="feedback-category">Bảo trì</span>
+                </div>
+                <div class="feedback-meta">
+                    <div class="feedback-time">3 ngày trước, 14:20</div>
+                    <div class="feedback-actions">
+                        <button class="action-btn-small">👍</button>
+                        <button class="action-btn-small">💬</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Form -->
+        <div class="feedback-form">
+            <div class="form-title">Gửi phản hồi</div>
+            <form id="feedbackForm">
+                <div class="form-group">
+                    <label class="form-label">Đánh giá của bạn</label>
+                    <div class="rating-input">
+                        <span class="rating-star-input" data-rating="1">★</span>
+                        <span class="rating-star-input" data-rating="2">★</span>
+                        <span class="rating-star-input" data-rating="3">★</span>
+                        <span class="rating-star-input" data-rating="4">★</span>
+                        <span class="rating-star-input" data-rating="5">★</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Danh mục</label>
+                    <select class="form-input">
+                        <option>Chọn danh mục</option>
+                        <option>Dịch vụ</option>
+                        <option>Cơ sở vật chất</option>
+                        <option>Bảo trì</option>
+                        <option>Môi trường</option>
+                        <option>An ninh</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nội dung phản hồi</label>
+                    <textarea class="form-textarea" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                </div>
+                <button type="submit" class="form-submit">Gửi phản hồi</button>
+            </form>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab">+</button>
+    </div>
+
+    <script>
+        // Filter tab functionality
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Rating star functionality
+        let selectedRating = 0;
+        document.querySelectorAll('.rating-star-input').forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                selectedRating = rating;
+                
+                // Update star display
+                document.querySelectorAll('.rating-star-input').forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // Form submission
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (selectedRating === 0) {
+                alert('Vui lòng chọn đánh giá!');
+                return;
+            }
+            alert('Cảm ơn bạn đã gửi phản hồi!');
+            this.reset();
+            selectedRating = 0;
+            document.querySelectorAll('.rating-star-input').forEach(star => {
+                star.classList.remove('active');
+            });
+        });
+
+        // Like and comment functionality
+        document.querySelectorAll('.action-btn-small').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.textContent === '👍') {
+                    this.style.background = '#e3f2fd';
+                    this.style.color = '#1976d2';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

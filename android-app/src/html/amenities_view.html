@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiện ích</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            /* Mobile frame dimensions */
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .search-section {
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8f9fa;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background: white;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+        .amenity-card {
+            background: white;
+            margin: 0 16px 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .amenity-card:hover {
+            transform: translateY(-2px);
+        }
+        .amenity-image {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #1976d2;
+        }
+        .amenity-content {
+            padding: 16px;
+        }
+        .amenity-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .amenity-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .amenity-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .status-available {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        .status-occupied {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        .status-maintenance {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .amenity-details {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            color: #666;
+        }
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .amenity-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn-primary {
+            flex: 1;
+            padding: 10px 16px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .action-btn-primary:hover {
+            background: #1565c0;
+        }
+        .action-btn-secondary {
+            padding: 10px 16px;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .action-btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            transition: transform 0.2s;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 12px 16px;
+            }
+            .search-section {
+                margin: 12px;
+                padding: 12px;
+            }
+            .amenity-card {
+                margin: 0 12px 12px;
+            }
+            .quick-stats {
+                margin: 12px;
+                gap: 8px;
+            }
+            .fab {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">←</button>
+                <div class="header-title">Tiện ích</div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn">🔍</button>
+                <button class="action-btn">⚙️</button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Tiện ích</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Có sẵn</div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-section">
+            <input type="text" class="search-input" placeholder="Tìm kiếm tiện ích...">
+            <div class="filter-buttons">
+                <button class="filter-btn active">Tất cả</button>
+                <button class="filter-btn">Có sẵn</button>
+                <button class="filter-btn">Đã đặt</button>
+                <button class="filter-btn">Bảo trì</button>
+            </div>
+        </div>
+
+        <!-- Amenities List -->
+        <div class="amenities-list">
+            <!-- Swimming Pool -->
+            <div class="amenity-card">
+                <div class="amenity-image">🏊‍♂️</div>
+                <div class="amenity-content">
+                    <div class="amenity-header">
+                        <div>
+                            <div class="amenity-title">Hồ bơi</div>
+                            <div class="amenity-subtitle">Tầng 1 - Khu vực A</div>
+                        </div>
+                        <div class="status-badge status-available">Có sẵn</div>
+                    </div>
+                    <div class="amenity-details">
+                        <div class="detail-item">
+                            <span>🕐</span>
+                            <span>06:00 - 22:00</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>💰</span>
+                            <span>Miễn phí</span>
+                        </div>
+                    </div>
+                    <div class="amenity-actions">
+                        <button class="action-btn-primary">Đặt ngay</button>
+                        <button class="action-btn-secondary">Chi tiết</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gym -->
+            <div class="amenity-card">
+                <div class="amenity-image">💪</div>
+                <div class="amenity-content">
+                    <div class="amenity-header">
+                        <div>
+                            <div class="amenity-title">Phòng gym</div>
+                            <div class="amenity-subtitle">Tầng 2 - Khu vực B</div>
+                        </div>
+                        <div class="status-badge status-occupied">Đã đặt</div>
+                    </div>
+                    <div class="amenity-details">
+                        <div class="detail-item">
+                            <span>🕐</span>
+                            <span>24/7</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>💰</span>
+                            <span>50k/tháng</span>
+                        </div>
+                    </div>
+                    <div class="amenity-actions">
+                        <button class="action-btn-primary">Đặt lịch</button>
+                        <button class="action-btn-secondary">Chi tiết</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Garden -->
+            <div class="amenity-card">
+                <div class="amenity-image">🌳</div>
+                <div class="amenity-content">
+                    <div class="amenity-header">
+                        <div>
+                            <div class="amenity-title">Vườn cây</div>
+                            <div class="amenity-subtitle">Khu vực ngoài trời</div>
+                        </div>
+                        <div class="status-badge status-available">Có sẵn</div>
+                    </div>
+                    <div class="amenity-details">
+                        <div class="detail-item">
+                            <span>🕐</span>
+                            <span>05:00 - 23:00</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>💰</span>
+                            <span>Miễn phí</span>
+                        </div>
+                    </div>
+                    <div class="amenity-actions">
+                        <button class="action-btn-primary">Đặt ngay</button>
+                        <button class="action-btn-secondary">Chi tiết</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meeting Room -->
+            <div class="amenity-card">
+                <div class="amenity-image">🏢</div>
+                <div class="amenity-content">
+                    <div class="amenity-header">
+                        <div>
+                            <div class="amenity-title">Phòng họp</div>
+                            <div class="amenity-subtitle">Tầng 3 - Khu vực C</div>
+                        </div>
+                        <div class="status-badge status-maintenance">Bảo trì</div>
+                    </div>
+                    <div class="amenity-details">
+                        <div class="detail-item">
+                            <span>🕐</span>
+                            <span>08:00 - 20:00</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>💰</span>
+                            <span>100k/giờ</span>
+                        </div>
+                    </div>
+                    <div class="amenity-actions">
+                        <button class="action-btn-primary" disabled>Bảo trì</button>
+                        <button class="action-btn-secondary">Chi tiết</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BBQ Area -->
+            <div class="amenity-card">
+                <div class="amenity-image">🍖</div>
+                <div class="amenity-content">
+                    <div class="amenity-header">
+                        <div>
+                            <div class="amenity-title">Khu BBQ</div>
+                            <div class="amenity-subtitle">Tầng trệt - Khu vực D</div>
+                        </div>
+                        <div class="status-badge status-available">Có sẵn</div>
+                    </div>
+                    <div class="amenity-details">
+                        <div class="detail-item">
+                            <span>🕐</span>
+                            <span>16:00 - 23:00</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>💰</span>
+                            <span>200k/lần</span>
+                        </div>
+                    </div>
+                    <div class="amenity-actions">
+                        <button class="action-btn-primary">Đặt ngay</button>
+                        <button class="action-btn-secondary">Chi tiết</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab">+</button>
+    </div>
+
+    <script>
+        // Filter button functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.amenity-card').forEach(card => {
+                const title = card.querySelector('.amenity-title').textContent.toLowerCase();
+                const subtitle = card.querySelector('.amenity-subtitle').textContent.toLowerCase();
+                if (title.includes(searchTerm) || subtitle.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item
+        android:id="@+id/navigation_dashboard"
+        android:icon="@drawable/ic_dashboard_24"
+        android:title="@string/dashboard" />
+        
+    <item
+        android:id="@+id/navigation_apartments"
+        android:icon="@drawable/ic_building_24"
+        android:title="@string/apartments" />
+        
+    <item
+        android:id="@+id/navigation_invoices"
+        android:icon="@drawable/ic_receipt_24"
+        android:title="@string/invoices" />
+        
+    <item
+        android:id="@+id/navigation_community"
+        android:icon="@drawable/ic_group_24"
+        android:title="Cộng đồng" />
+        
+    <item
+        android:id="@+id/navigation_account"
+        android:icon="@drawable/ic_person_24"
+        android:title="@string/account" />
+</menu>

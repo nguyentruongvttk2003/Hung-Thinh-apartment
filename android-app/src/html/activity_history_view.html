@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử hoạt động</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            width: 412px;
+            height: 917px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 412px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #7b1fa2, #4a148c);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .date-picker {
+            background: white;
+            margin: 16px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .date-inputs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .date-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .apply-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #7b1fa2, #4a148c);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px;
+            overflow-x: auto;
+        }
+        .filter-tab {
+            padding: 8px 16px;
+            border: 1px solid #7b1fa2;
+            border-radius: 20px;
+            background: white;
+            color: #7b1fa2;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .filter-tab.active {
+            background: #7b1fa2;
+            color: white;
+        }
+        .activity-list {
+            padding: 0 16px 16px;
+        }
+        .activity-item {
+            background: white;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 2px;
+        }
+        .activity-login::before {
+            background: #4caf50;
+        }
+        .activity-payment::before {
+            background: #2196f3;
+        }
+        .activity-maintenance::before {
+            background: #ff9800;
+        }
+        .activity-notification::before {
+            background: #9c27b0;
+        }
+        .activity-error::before {
+            background: #f44336;
+        }
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .activity-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .activity-time {
+            font-size: 12px;
+            color: #666;
+        }
+        .activity-description {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .activity-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #777;
+        }
+        .activity-user {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .user-avatar {
+            width: 20px;
+            height: 20px;
+            background: #7b1fa2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .activity-ip {
+            font-family: monospace;
+        }
+        .activity-icon {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .icon-login {
+            background: #e8f5e8;
+            color: #4caf50;
+        }
+        .icon-payment {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+        .icon-maintenance {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+        .icon-notification {
+            background: #f3e5f5;
+            color: #9c27b0;
+        }
+        .icon-error {
+            background: #ffebee;
+            color: #f44336;
+        }
+        .stats-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 16px 16px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #7b1fa2;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+        }
+        .export-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #7b1fa2, #4a148c);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(123,31,162,0.4);
+        }
+        /* Mobile-specific adjustments */
+        @media (max-width: 412px) {
+            body {
+                width: 100vw;
+                height: 100vh;
+            }
+            .container {
+                padding: 0;
+            }
+            .header {
+                padding: 16px;
+            }
+            .date-picker {
+                margin: 12px;
+                padding: 12px;
+            }
+            .stats-summary {
+                padding: 0 12px 12px;
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .filter-tabs {
+                padding: 0 12px 12px;
+            }
+            .activity-list {
+                padding: 0 12px 12px;
+            }
+        }
+        /* Ensure proper mobile frame display */
+        @media (min-width: 413px) {
+            body {
+                border: 2px solid #ddd;
+                border-radius: 20px;
+                margin: 20px auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn">←</button>
+            <h1>📊 Lịch sử hoạt động</h1>
+            <p>Theo dõi tất cả hoạt động trong hệ thống</p>
+        </div>
+
+        <!-- Date Picker -->
+        <div class="date-picker">
+            <div class="date-inputs">
+                <input type="date" class="date-input" value="2024-01-01">
+                <input type="date" class="date-input" value="2024-01-31">
+            </div>
+            <button class="apply-btn" onclick="applyDateFilter()">Áp dụng bộ lọc</button>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-number">1,247</div>
+                <div class="stat-label">Tổng hoạt động</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">89</div>
+                <div class="stat-label">Hôm nay</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Người dùng</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Lỗi hệ thống</div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <div class="filter-tab active" onclick="filterActivities('all')">Tất cả</div>
+            <div class="filter-tab" onclick="filterActivities('login')">Đăng nhập</div>
+            <div class="filter-tab" onclick="filterActivities('payment')">Thanh toán</div>
+            <div class="filter-tab" onclick="filterActivities('maintenance')">Bảo trì</div>
+            <div class="filter-tab" onclick="filterActivities('notification')">Thông báo</div>
+            <div class="filter-tab" onclick="filterActivities('error')">Lỗi</div>
+        </div>
+
+        <!-- Activity List -->
+        <div class="activity-list">
+            <div class="activity-item activity-login" data-type="login">
+                <div class="activity-icon icon-login">🔐</div>
+                <div class="activity-header">
+                    <div>
+                        <div class="activity-title">Đăng nhập thành công</div>
+                        <div class="activity-time">14:32 - 31/01/2024</div>
+                    </div>
+                </div>
+                <div class="activity-description">
+                    Người dùng đăng nhập vào hệ thống từ thiết bị di động
+                </div>
+                <div class="activity-meta">
+                    <div class="activity-user">
+                        <div class="user-avatar">NV</div>
+                        <span>Nguyễn Văn A</span>
+                    </div>
+                    <div class="activity-ip">192.168.1.100</div>
+                </div>
+            </div>
+
+            <div class="activity-item activity-payment" data-type="payment">
+                <div class="activity-icon icon-payment">💳</div>
+                <div class="activity-header">
+                    <div>
+                        <div class="activity-title">Thanh toán hóa đơn</div>
+                        <div class="activity-time">13:15 - 31/01/2024</div>
+                    </div>
+                </div>
+                <div class="activity-description">
+                    Thanh toán hóa đơn điện tháng 01/2024 qua ví điện tử
+                </div>
+                <div class="activity-meta">
+                    <div class="activity-user">
+                        <div class="user-avatar">TB</div>
+                        <span>Trần Thị B</span>
+                    </div>
+                    <div class="activity-ip">192.168.1.101</div>
+                </div>
+            </div>
+
+            <div class="activity-item activity-maintenance" data-type="maintenance">
+                <div class="activity-icon icon-maintenance">🔧</div>
+                <div class="activity-header">
+                    <div>
+                        <div class="activity-title">Yêu cầu bảo trì</div>
+                        <div class="activity-time">11:45 - 31/01/2024</div>
+                    </div>
+                </div>
+                <div class="activity-description">
+                    Tạo yêu cầu bảo trì hệ thống điều hòa không khí
+                </div>
+                <div class="activity-meta">
+                    <div class="activity-user">
+                        <div class="user-avatar">LC</div>
+                        <span>Lê Văn C</span>
+                    </div>
+                    <div class="activity-ip">192.168.1.102</div>
+                </div>
+            </div>
+
+            <div class="activity-item activity-notification" data-type="notification">
+                <div class="activity-icon icon-notification">🔔</div>
+                <div class="activity-header">
+                    <div>
+                        <div class="activity-title">Gửi thông báo</div>
+                        <div class="activity-time">10:20 - 31/01/2024</div>
+                    </div>
+                </div>
+                <div class="activity-description">
+                    Gửi thông báo về việc bảo trì thang máy vào ngày mai
+                </div>
+                <div class="activity-meta">
+                    <div class="activity-user">
+                        <div class="user-avatar">QT</div>
+                        <span>Quản trị viên</span>
+                    </div>
+                    <div class="activity-ip">192.168.1.103</div>
+                </div>
+            </div>
+
+            <div class="activity-item activity-error" data-type="error">
+                <div class="activity-icon icon-error">⚠️</div>
+                <div class="activity-header">
+                    <div>
+                        <div class="activity-title">Lỗi kết nối cơ sở dữ liệu</div>
+                        <div class="activity-time">09:15 - 31/01/2024</div>
+                    </div>
+                </div>
+                <div class="activity-description">
+                    Không thể kết nối đến cơ sở dữ liệu trong 5 phút
+                </div>
+                <div class="activity-meta">
+                    <div class="activity-user">
+                        <div class="user-avatar">HT</div>
+                        <span>Hệ thống</span>
+                    </div>
+                    <div class="activity-ip">127.0.0.1</div>
+                </div>
+            </div>
+
+            <div class="activity-item activity-login" data-type="login">
+                <div class="activity-icon icon-login">🔐</div>
+                <div class="activity-header">
+                    <div>
+                        <div class="activity-title">Đăng xuất</div>
+                        <div class="activity-time">08:45 - 31/01/2024</div>
+                    </div>
+                </div>
+                <div class="activity-description">
+                    Người dùng đăng xuất khỏi hệ thống
+                </div>
+                <div class="activity-meta">
+                    <div class="activity-user">
+                        <div class="user-avatar">NV</div>
+                        <span>Nguyễn Văn A</span>
+                    </div>
+                    <div class="activity-ip">192.168.1.100</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Button -->
+        <button class="export-btn" onclick="exportHistory()" title="Xuất báo cáo">📊</button>
+    </div>
+
+    <script>
+        function filterActivities(type) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Filter activities based on type
+            const activities = document.querySelectorAll('.activity-item');
+            activities.forEach(activity => {
+                if (type === 'all' || activity.dataset.type === type) {
+                    activity.style.display = 'block';
+                } else {
+                    activity.style.display = 'none';
+                }
+            });
+        }
+
+        function applyDateFilter() {
+            const startDate = document.querySelector('input[type="date"]:first-child').value;
+            const endDate = document.querySelector('input[type="date"]:last-child').value;
+            alert(`Áp dụng bộ lọc từ ${startDate} đến ${endDate}`);
+        }
+
+        function exportHistory() {
+            alert('Xuất báo cáo lịch sử hoạt động');
+        }
+
+        // Add click event to activity items
+        document.querySelectorAll('.activity-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const title = this.querySelector('.activity-title').textContent;
+                const time = this.querySelector('.activity-time').textContent;
+                alert(`Chi tiết hoạt động: ${title}\nThời gian: ${time}`);
+            });
+        });
+    </script>
+</body>
+</html>
