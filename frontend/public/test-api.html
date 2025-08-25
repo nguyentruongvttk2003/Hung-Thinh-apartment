@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    <div id="results"></div>
+    
+    <script>
+        const baseURL = 'http://localhost:8000/api';
+        const resultsDiv = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            resultsDiv.innerHTML += '<div>' + JSON.stringify(message, null, 2) + '</div><br>';
+        }
+        
+        async function testAPIs() {
+            log('Starting API tests...');
+            
+            // Test 1: Simple test
+            try {
+                const response1 = await fetch(`${baseURL}/test-simple`);
+                const data1 = await response1.json();
+                log('Test simple: SUCCESS');
+                log(data1);
+            } catch (error) {
+                log('Test simple: ERROR');
+                log(error.message);
+            }
+            
+            // Test 2: Test apartments (no auth)
+            try {
+                const response2 = await fetch(`${baseURL}/test-apartments`);
+                const data2 = await response2.json();
+                log('Test apartments (no auth): SUCCESS');
+                log(data2);
+            } catch (error) {
+                log('Test apartments (no auth): ERROR');
+                log(error.message);
+            }
+            
+            // Test 3: Check auth token
+            const token = localStorage.getItem('auth_token');
+            log('Auth token: ' + (token ? 'exists' : 'missing'));
+            
+            if (token) {
+                // Test 4: Test apartments with auth
+                try {
+                    const response3 = await fetch(`${baseURL}/apartments`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data3 = await response3.json();
+                    log('Test apartments (with auth): SUCCESS');
+                    log(data3);
+                } catch (error) {
+                    log('Test apartments (with auth): ERROR');
+                    log(error.message);
+                }
+            }
+        }
+        
+        testAPIs();
+    </script>
+</body>
+</html>
